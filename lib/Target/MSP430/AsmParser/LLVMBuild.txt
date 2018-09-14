@@ -1,4 +1,4 @@
-;===- ./lib/Target/MSP430/LLVMBuild.txt ------------------------*- Conf -*--===;
+;===- ./lib/Target/MSP430/AsmParser/LLVMBuild.txt --------------*- Conf -*--===;
 ;
 ;                     The LLVM Compiler Infrastructure
 ;
@@ -15,18 +15,9 @@
 ;
 ;===------------------------------------------------------------------------===;
 
-[common]
-subdirectories = AsmParser InstPrinter MCTargetDesc TargetInfo
-
 [component_0]
-type = TargetGroup
-name = MSP430
-parent = Target
-has_asmprinter = 1
-
-[component_1]
 type = Library
-name = MSP430CodeGen
+name = MSP430AsmParser
 parent = MSP430
-required_libraries = AsmPrinter CodeGen Core MC MSP430AsmPrinter MSP430Desc MSP430Info SelectionDAG Support Target
+required_libraries = MC MCParser MSP430Desc MSP430Info Support
 add_to_library_groups = MSP430

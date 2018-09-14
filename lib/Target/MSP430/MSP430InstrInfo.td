@@ -223,9 +223,11 @@ let isCall = 1 in
     def CALLr     : II16r<0x0,
                           (outs), (ins GR16:$dst),
                           "call\t$dst", [(MSP430call GR16:$dst)]>;
+    let isCodeGenOnly = 1 in {
     def CALLm     : II16m<0x0,
                           (outs), (ins memsrc:$dst),
                           "call\t${dst:mem}", [(MSP430call (load addr:$dst))]>;
+    }
   }
 
 
@@ -967,6 +969,7 @@ def SHL16r1 : I16rr<0x0,
                     [(set GR16:$dst, (MSP430rla GR16:$src)),
                      (implicit SR)]>;
 
+let isCodeGenOnly = 1 in {
 def SAR8r1c  : Pseudo<(outs GR8:$dst), (ins GR8:$src),
                       "clrc\n\t"
                       "rrc.b\t$dst",
@@ -977,6 +980,7 @@ def SAR16r1c : Pseudo<(outs GR16:$dst), (ins GR16:$src),
                       "rrc.w\t$dst",
                       [(set GR16:$dst, (MSP430rrc GR16:$src)),
                        (implicit SR)]>;
+}
 
 // FIXME: Memory sext's ?
 def SEXT16r : II16r<0x0,

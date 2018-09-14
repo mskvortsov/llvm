@@ -1,5 +1,6 @@
 set(LLVM_TARGET_DEFINITIONS MSP430.td)
 
+tablegen(LLVM MSP430GenAsmMatcher.inc -gen-asm-matcher)
 tablegen(LLVM MSP430GenAsmWriter.inc -gen-asm-writer)
 tablegen(LLVM MSP430GenCallingConv.inc -gen-callingconv)
 tablegen(LLVM MSP430GenDAGISel.inc -gen-dag-isel)
@@ -26,3 +27,4 @@ add_llvm_target(MSP430CodeGen
 add_subdirectory(InstPrinter)
 add_subdirectory(MCTargetDesc)
 add_subdirectory(TargetInfo)
+add_subdirectory(AsmParser)

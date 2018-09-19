@@ -71,15 +71,21 @@ def MSP430srl     : SDNode<"MSP430ISD::SRL", SDT_MSP430Shift, []>;
 // MSP430 Operand Definitions.
 //===----------------------------------------------------------------------===//
 
+def MemAsmOperand : AsmOperandClass {
+  let Name = "Mem";
+}
+
 // Address operands
 def memsrc : Operand<i16> {
   let PrintMethod = "printSrcMemOperand";
   let MIOperandInfo = (ops GR16, i16imm);
+  let ParserMatchClass = MemAsmOperand;
 }
 
 def memdst : Operand<i16> {
   let PrintMethod = "printSrcMemOperand";
   let MIOperandInfo = (ops GR16, i16imm);
+  let ParserMatchClass = MemAsmOperand;
 }
 
 // Short jump targets have OtherVT type and are printed as pcrel imm values.
@@ -113,21 +119,21 @@ def and_su : PatFrag<(ops node:$lhs, node:$rhs), (and node:$lhs, node:$rhs), [{
 // pointer before prolog-epilog rewriting occurs.
 // Pessimistically assume ADJCALLSTACKDOWN / ADJCALLSTACKUP will become
 // sub / add which can clobber SR.
-let Defs = [SP, SR], Uses = [SP] in {
+let isCodeGenOnly = 1, Defs = [SP, SR], Uses = [SP] in {
 def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i16imm:$amt1, i16imm:$amt2),
-                              "#ADJCALLSTACKDOWN",
+                              "#ADJCALLSTACKDOWN $amt1 $amt2",
                               [(MSP430callseq_start timm:$amt1, timm:$amt2)]>;
 def ADJCALLSTACKUP   : Pseudo<(outs), (ins i16imm:$amt1, i16imm:$amt2),
-                              "#ADJCALLSTACKUP",
+                              "#ADJCALLSTACKUP $amt1 $amt2",
                               [(MSP430callseq_end timm:$amt1, timm:$amt2)]>;
 }
 
-let Defs = [SR], Uses = [SP] in {
+let isCodeGenOnly = 1, Defs = [SR], Uses = [SP] in {
 def ADDframe : Pseudo<(outs GR16:$dst), (ins i16imm:$base, i16imm:$offset),
                       "# ADDframe PSEUDO", []>;
 }
 
-let usesCustomInserter = 1 in {
+let isCodeGenOnly = 1, usesCustomInserter = 1 in {
   let Uses = [SR] in {
   def Select8  : Pseudo<(outs GR8:$dst), (ins GR8:$src, GR8:$src2, i8imm:$cc),
                         "# Select8 PSEUDO",

@@ -29,7 +29,7 @@ class MSP430Subtarget;
 ///
 namespace MSP430II {
   enum {
-    SizeShift   = 2,
+    SizeShift   = 0,
     SizeMask    = 7 << SizeShift,
 
     SizeUnknown = 0 << SizeShift,

@@ -11,18 +11,6 @@
 //  Describe MSP430 instructions format here
 //
 
-// Format specifies the encoding used by the instruction.  This is part of the
-// ad-hoc solution used to emit machine instruction encodings by our machine
-// code emitter.
-class Format<bits<2> val> {
-  bits<2> Value = val;
-}
-
-def PseudoFrm   : Format<0>;
-def SingleOpFrm : Format<1>;
-def DoubleOpFrm : Format<2>;
-def CondJumpFrm : Format<3>;
-
 class SourceMode<bits<2> val> {
   bits<2> Value = val;
 }
@@ -51,8 +39,7 @@ def Size4Bytes  : SizeVal<3>;
 def Size6Bytes  : SizeVal<4>;
 
 // Generic MSP430 Format
-class MSP430Inst<dag outs, dag ins, SizeVal sz, Format f,
-                 string asmstr> : Instruction {
+class MSP430Inst<dag outs, dag ins, SizeVal sz, string asmstr> : Instruction {
   field bits<16> Inst;
 
   let Namespace = "MSP430";
@@ -60,13 +47,9 @@ class MSP430Inst<dag outs, dag ins, SizeVal sz, Format f,
   dag OutOperandList = outs;
   dag InOperandList  = ins;
 
-  Format Form = f;
-  SizeVal Sz = sz;
-
   // Define how we want to layout our TargetSpecific information field... This
   // should be kept up-to-date with the fields in the MSP430InstrInfo.h file.
-  let TSFlags{1-0} = Form.Value;
-  let TSFlags{4-2} = Sz.Value;
+  let TSFlags{2-0} = sz.Value;
 
   let AsmString   = asmstr;
 }
@@ -76,7 +59,7 @@ class MSP430Inst<dag outs, dag ins, SizeVal sz, Format f,
 // MSP430 Double Operand (Format I) Instructions
 class IForm<bits<4> opcode, DestMode dest, bit bw, SourceMode src, SizeVal sz,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : MSP430Inst<outs, ins, sz, DoubleOpFrm, asmstr> {
+  : MSP430Inst<outs, ins, sz, asmstr> {
   let Pattern = pattern;
 
   DestMode ad = dest;
@@ -149,7 +132,7 @@ class I16mm<bits<4> opcode,
 // MSP430 Single Operand (Format II) Instructions
 class IIForm<bits<9> opcode, bit bw, SourceMode src, SizeVal sz,
              dag outs, dag ins, string asmstr, list<dag> pattern>
-  : MSP430Inst<outs, ins, sz, SingleOpFrm, asmstr> {
+  : MSP430Inst<outs, ins, sz, asmstr> {
   let Pattern = pattern;
   
   SourceMode as = src;
@@ -196,7 +179,7 @@ class II16i<bits<9> opcode,
 // MSP430 Conditional Jumps Instructions
 class CJForm<bits<3> opcode, bits<3> cond,
              dag outs, dag ins, string asmstr, list<dag> pattern>
-  : MSP430Inst<outs, ins, Size2Bytes, CondJumpFrm, asmstr> {
+  : MSP430Inst<outs, ins, Size2Bytes, asmstr> {
   let Pattern = pattern;
   
   let Inst{13-15} = opcode;
@@ -205,7 +188,7 @@ class CJForm<bits<3> opcode, bits<3> cond,
 
 // Pseudo instructions
 class Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>
-  : MSP430Inst<outs, ins, SizeSpecial, PseudoFrm, asmstr> {
+  : MSP430Inst<outs, ins, SizeSpecial, asmstr> {
   let Pattern = pattern;
   let Inst{15-0} = 0;
 }

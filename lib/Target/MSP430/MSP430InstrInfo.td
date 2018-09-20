@@ -176,7 +176,7 @@ def NOP : Pseudo<(outs), (ins), "nop", []>;
 
 // FIXME: Provide proper encoding!
 let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
-  def RET  : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
+  def RET  : IForm16<0x0, DstReg, SrcPostInc, 2,
                      (outs), (ins), "ret",  [(MSP430retflag)]>;
   def RETI : II16r<0x0, (outs), (ins), "reti", [(MSP430retiflag)]>;
 }
@@ -242,7 +242,7 @@ let isCall = 1 in
 //
 let Defs = [SP], Uses = [SP], hasSideEffects=0 in {
 let mayLoad = 1 in
-def POP16r   : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
+def POP16r   : IForm16<0x0, DstReg, SrcPostInc, 2,
                        (outs GR16:$reg), (ins), "pop.w\t$reg", []>;
 
 let mayStore = 1 in
@@ -298,10 +298,10 @@ def MOVZX16rm8 : I8rm<0x0,
                       [(set GR16:$dst, (zextloadi16i8 addr:$src))]>;
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$base = $base_wb" in {
-def MOV8rm_POST  : IForm8<0x0, DstReg, SrcPostInc, Size2Bytes,
+def MOV8rm_POST  : IForm8<0x0, DstReg, SrcPostInc, 2,
                          (outs GR8:$dst, GR16:$base_wb), (ins GR16:$base),
                          "mov.b\t{@$base+, $dst}", []>;
-def MOV16rm_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
+def MOV16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
                            (outs GR16:$dst, GR16:$base_wb), (ins GR16:$base),
                            "mov.w\t{@$base+, $dst}", []>;
 }
@@ -382,11 +382,11 @@ def ADD16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def ADD8rm_POST : IForm8<0x0, DstReg, SrcPostInc, Size2Bytes,
+def ADD8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
                          (outs GR8:$dst, GR16:$base_wb),
                          (ins GR8:$src, GR16:$base),
                          "add.b\t{@$base+, $dst}", []>;
-def ADD16rm_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
+def ADD16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
                            (outs GR16:$dst, GR16:$base_wb),
                            (ins GR16:$src, GR16:$base),
                           "add.w\t{@$base+, $dst}", []>;
@@ -554,11 +554,11 @@ def AND16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def AND8rm_POST : IForm8<0x0, DstReg, SrcPostInc, Size2Bytes,
+def AND8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
                          (outs GR8:$dst, GR16:$base_wb),
                          (ins GR8:$src, GR16:$base),
                          "and.b\t{@$base+, $dst}", []>;
-def AND16rm_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
+def AND16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
                            (outs GR16:$dst, GR16:$base_wb),
                            (ins GR16:$src, GR16:$base),
                            "and.w\t{@$base+, $dst}", []>;
@@ -632,11 +632,11 @@ def OR16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def OR8rm_POST : IForm8<0x0, DstReg, SrcPostInc, Size2Bytes,
+def OR8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
                         (outs GR8:$dst, GR16:$base_wb),
                         (ins GR8:$src, GR16:$base),
                         "bis.b\t{@$base+, $dst}", []>;
-def OR16rm_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
+def OR16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
                           (outs GR16:$dst, GR16:$base_wb),
                           (ins GR16:$src, GR16:$base),
                           "bis.w\t{@$base+, $dst}", []>;
@@ -751,11 +751,11 @@ def XOR16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def XOR8rm_POST : IForm8<0x0, DstReg, SrcPostInc, Size2Bytes,
+def XOR8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
                          (outs GR8:$dst, GR16:$base_wb),
                          (ins GR8:$src, GR16:$base),
                          "xor.b\t{@$base+, $dst}", []>;
-def XOR16rm_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
+def XOR16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
                            (outs GR16:$dst, GR16:$base_wb),
                            (ins GR16:$src, GR16:$base),
                            "xor.w\t{@$base+, $dst}", []>;
@@ -832,11 +832,11 @@ def SUB16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def SUB8rm_POST : IForm8<0x0, DstReg, SrcPostInc, Size2Bytes,
+def SUB8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
                          (outs GR8:$dst, GR16:$base_wb),
                          (ins GR8:$src, GR16:$base),
                          "sub.b\t{@$base+, $dst}", []>;
-def SUB16rm_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
+def SUB16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
                           (outs GR16:$dst, GR16:$base_wb),
                           (ins GR16:$src, GR16:$base),
                           "sub.w\t{@$base+, $dst}", []>;

@@ -18,8 +18,17 @@
 
 namespace llvm {
 class Target;
+class MCCodeEmitter;
+class MCInstrInfo;
+class MCRegisterInfo;
+class MCContext;
 
 Target &getTheMSP430Target();
+
+/// Creates a machine code emitter for MSP430.
+MCCodeEmitter *createMSP430MCCodeEmitter(const MCInstrInfo &MCII,
+                                         const MCRegisterInfo &MRI,
+                                         MCContext &Ctx);
 
 } // End llvm namespace
 

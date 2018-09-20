@@ -76,4 +76,8 @@ extern "C" void LLVMInitializeMSP430TargetMC() {
   // Register the MCInstPrinter.
   TargetRegistry::RegisterMCInstPrinter(getTheMSP430Target(),
                                         createMSP430MCInstPrinter);
+
+  // Register the MC Code Emitter
+  TargetRegistry::RegisterMCCodeEmitter(getTheMSP430Target(),
+                                        createMSP430MCCodeEmitter);
 }

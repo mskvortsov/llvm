@@ -23,7 +23,8 @@
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
-#include "llvm/Support/Casting.h"
+#include "llvm/Support/Endian.h"
+#include "llvm/Support/EndianStream.h"
 #include "llvm/Support/raw_ostream.h"
 
 #define DEBUG_TYPE "mccodeemitter"
@@ -51,6 +52,14 @@ public:
   uint64_t getBinaryCodeForInstr(const MCInst &MI,
                                  SmallVectorImpl<MCFixup> &Fixups,
                                  const MCSubtargetInfo &STI) const;
+
+  /// Returns the binary encoding of operand.
+  ///
+  /// If the machine operand requires relocation, the relocation is recorded
+  /// and zero is returned.
+  unsigned getMachineOpValue(const MCInst &MI, const MCOperand &MO,
+                             SmallVectorImpl<MCFixup> &Fixups,
+                             const MCSubtargetInfo &STI) const;
 };
 
 void MSP430MCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
@@ -64,14 +73,23 @@ void MSP430MCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
   const uint16_t *Words = reinterpret_cast<uint16_t const *>(&BinaryOpCode);
   size_t WordCount = Size / 2;
 
-  for (int64_t i = WordCount - 1; i >= 0; --i) {
+  for (size_t i = 0; i < WordCount; ++i) {
     uint16_t Word = Words[i];
-
-    OS << (uint8_t) ((Word & 0x00ff) >> 0);
-    OS << (uint8_t) ((Word & 0xff00) >> 8);
+    support::endian::write(OS, Word, support::little);
   }
 }
 
+unsigned MSP430MCCodeEmitter::getMachineOpValue(const MCInst &MI,
+                                                const MCOperand &MO,
+                                                SmallVectorImpl<MCFixup> &Fixups,
+                                                const MCSubtargetInfo &STI) const {
+  if (MO.isReg()) {
+    unsigned Reg = Ctx.getRegisterInfo()->getEncodingValue(MO.getReg());
+    return Reg;
+  }
+
+  assert(0 && "NYI");
+}
 MCCodeEmitter *createMSP430MCCodeEmitter(const MCInstrInfo &MCII,
                                          const MCRegisterInfo &MRI,
                                          MCContext &Ctx) {

@@ -52,10 +52,10 @@ class IForm<bits<4> opcode, DestMode dest, bit bw, SourceMode src, int size,
   DestMode ad = dest;
   SourceMode as = src;
   
-  let Inst{12-15} = opcode;
+  let Inst{15-12} = opcode;
   let Inst{7}     = ad.Value;
   let Inst{6}     = bw;
-  let Inst{4-5}   = as.Value;
+  let Inst{5-4}   = as.Value;
 }
 
 // 8 bit IForm instructions

@@ -12,3 +12,5 @@ foo:
 disp:
   .word 0xcafe
   .word 0xbabe
+
+; CHECK: mov.w	r8, r15         ; encoding: [0x0f,0x48]

@@ -80,12 +80,14 @@ def memsrc : Operand<i16> {
   let PrintMethod = "printSrcMemOperand";
   let MIOperandInfo = (ops GR16, i16imm);
   let ParserMatchClass = MemAsmOperand;
+  let EncoderMethod = "getMemOperandValue";
 }
 
 def memdst : Operand<i16> {
   let PrintMethod = "printSrcMemOperand";
   let MIOperandInfo = (ops GR16, i16imm);
   let ParserMatchClass = MemAsmOperand;
+  let EncoderMethod = "getMemOperandValue";
 }
 
 // Short jump targets have OtherVT type and are printed as pcrel imm values.
@@ -259,10 +261,15 @@ def MOV8rr  : I8rr<0x0,
                    (outs GR8:$dst), (ins GR8:$src),
                    "mov.b\t{$src, $dst}",
                    []>;
-def MOV16rr : I16rr<0x0,
+def MOV16rr : I16rr<0b0100,
                     (outs GR16:$dst), (ins GR16:$src),
                     "mov.w\t{$src, $dst}",
-                    []>;
+                    []> {
+  bits<4> src;
+  bits<4> dst;
+  let Inst{11-8} = src;
+  let Inst{3-0} = dst;
+}
 }
 
 // FIXME: Provide proper encoding!

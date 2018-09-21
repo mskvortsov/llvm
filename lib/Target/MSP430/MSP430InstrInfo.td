@@ -314,12 +314,12 @@ def MOVZX16rm8 : I8rm<0x0,
                       [(set GR16:$dst, (zextloadi16i8 addr:$src))]>;
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$base = $base_wb" in {
-def MOV8rm_POST  : IForm8<0x0, DstReg, SrcPostInc, 2,
-                         (outs GR8:$dst, GR16:$base_wb), (ins GR16:$base),
-                         "mov.b\t{@$base+, $dst}", []>;
-def MOV16rm_POST : IForm16<0b0100, DstReg, SrcPostInc, 2,
-                           (outs GR16:$dst, GR16:$base_wb), (ins GR16:$base),
-                           "mov.w\t{@$base+, $dst}", []> {
+def MOV8rp  : IForm8<0x0, DstReg, SrcPostInc, 2,
+                     (outs GR8:$dst, GR16:$base_wb), (ins GR16:$base),
+                     "mov.b\t{@$base+, $dst}", []>;
+def MOV16rp : IForm16<0b0100, DstReg, SrcPostInc, 2,
+                      (outs GR16:$dst, GR16:$base_wb), (ins GR16:$base),
+                      "mov.w\t{@$base+, $dst}", []> {
   bits<4> dst;
   bits<4> base;
   let Inst{11-8} = base;
@@ -403,14 +403,14 @@ def ADD16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def ADD8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
-                         (outs GR8:$dst, GR16:$base_wb),
-                         (ins GR8:$src, GR16:$base),
-                         "add.b\t{@$base+, $dst}", []>;
-def ADD16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
-                           (outs GR16:$dst, GR16:$base_wb),
-                           (ins GR16:$src, GR16:$base),
-                          "add.w\t{@$base+, $dst}", []>;
+def ADD8rp : IForm8<0x0, DstReg, SrcPostInc, 2,
+                    (outs GR8:$dst, GR16:$base_wb),
+                    (ins GR8:$src, GR16:$base),
+                    "add.b\t{@$base+, $dst}", []>;
+def ADD16rp : IForm16<0x0, DstReg, SrcPostInc, 2,
+                      (outs GR16:$dst, GR16:$base_wb),
+                      (ins GR16:$src, GR16:$base),
+                      "add.w\t{@$base+, $dst}", []>;
 }
 
 
@@ -575,14 +575,14 @@ def AND16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def AND8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
-                         (outs GR8:$dst, GR16:$base_wb),
-                         (ins GR8:$src, GR16:$base),
-                         "and.b\t{@$base+, $dst}", []>;
-def AND16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
-                           (outs GR16:$dst, GR16:$base_wb),
-                           (ins GR16:$src, GR16:$base),
-                           "and.w\t{@$base+, $dst}", []>;
+def AND8rp : IForm8<0x0, DstReg, SrcPostInc, 2,
+                    (outs GR8:$dst, GR16:$base_wb),
+                    (ins GR8:$src, GR16:$base),
+                    "and.b\t{@$base+, $dst}", []>;
+def AND16rp : IForm16<0x0, DstReg, SrcPostInc, 2,
+                      (outs GR16:$dst, GR16:$base_wb),
+                      (ins GR16:$src, GR16:$base),
+                      "and.w\t{@$base+, $dst}", []>;
 }
 
 let Constraints = "" in {
@@ -653,14 +653,14 @@ def OR16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def OR8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
-                        (outs GR8:$dst, GR16:$base_wb),
-                        (ins GR8:$src, GR16:$base),
-                        "bis.b\t{@$base+, $dst}", []>;
-def OR16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
-                          (outs GR16:$dst, GR16:$base_wb),
-                          (ins GR16:$src, GR16:$base),
-                          "bis.w\t{@$base+, $dst}", []>;
+def OR8rp : IForm8<0x0, DstReg, SrcPostInc, 2,
+                   (outs GR8:$dst, GR16:$base_wb),
+                   (ins GR8:$src, GR16:$base),
+                   "bis.b\t{@$base+, $dst}", []>;
+def OR16rp : IForm16<0x0, DstReg, SrcPostInc, 2,
+                     (outs GR16:$dst, GR16:$base_wb),
+                     (ins GR16:$src, GR16:$base),
+                     "bis.w\t{@$base+, $dst}", []>;
 }
 
 let Constraints = "" in {
@@ -772,14 +772,14 @@ def XOR16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def XOR8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
-                         (outs GR8:$dst, GR16:$base_wb),
-                         (ins GR8:$src, GR16:$base),
-                         "xor.b\t{@$base+, $dst}", []>;
-def XOR16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
-                           (outs GR16:$dst, GR16:$base_wb),
-                           (ins GR16:$src, GR16:$base),
-                           "xor.w\t{@$base+, $dst}", []>;
+def XOR8rp : IForm8<0x0, DstReg, SrcPostInc, 2,
+                    (outs GR8:$dst, GR16:$base_wb),
+                    (ins GR8:$src, GR16:$base),
+                    "xor.b\t{@$base+, $dst}", []>;
+def XOR16rp : IForm16<0x0, DstReg, SrcPostInc, 2,
+                      (outs GR16:$dst, GR16:$base_wb),
+                      (ins GR16:$src, GR16:$base),
+                      "xor.w\t{@$base+, $dst}", []>;
 }
 
 let Constraints = "" in {
@@ -853,14 +853,14 @@ def SUB16rm : I16rm<0x0,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {
-def SUB8rm_POST : IForm8<0x0, DstReg, SrcPostInc, 2,
-                         (outs GR8:$dst, GR16:$base_wb),
-                         (ins GR8:$src, GR16:$base),
-                         "sub.b\t{@$base+, $dst}", []>;
-def SUB16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
-                          (outs GR16:$dst, GR16:$base_wb),
-                          (ins GR16:$src, GR16:$base),
-                          "sub.w\t{@$base+, $dst}", []>;
+def SUB8rp : IForm8<0x0, DstReg, SrcPostInc, 2,
+                    (outs GR8:$dst, GR16:$base_wb),
+                    (ins GR8:$src, GR16:$base),
+                    "sub.b\t{@$base+, $dst}", []>;
+def SUB16rp : IForm16<0x0, DstReg, SrcPostInc, 2,
+                      (outs GR16:$dst, GR16:$base_wb),
+                      (ins GR16:$src, GR16:$base),
+                      "sub.w\t{@$base+, $dst}", []>;
 }
 
 let Constraints = "" in {

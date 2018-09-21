@@ -278,10 +278,14 @@ def MOV8ri  : I8ri<0x0,
                    (outs GR8:$dst), (ins i8imm:$src),
                    "mov.b\t{$src, $dst}",
                    [(set GR8:$dst, imm:$src)]>;
-def MOV16ri : I16ri<0x0,
+def MOV16ri : I16ri<0b0100,
                     (outs GR16:$dst), (ins i16imm:$src),
                     "mov.w\t{$src, $dst}",
-                    [(set GR16:$dst, imm:$src)]>;
+                    [(set GR16:$dst, imm:$src)]> {
+  bits<4> dst;
+  let Inst{11-8} = 0;
+  let Inst{3-0} = dst;
+}
 }
 
 let canFoldAsLoad = 1, isReMaterializable = 1 in {
@@ -289,10 +293,15 @@ def MOV8rm  : I8rm<0x0,
                    (outs GR8:$dst), (ins memsrc:$src),
                    "mov.b\t{$src, $dst}",
                    [(set GR8:$dst, (load addr:$src))]>;
-def MOV16rm : I16rm<0x0,
+def MOV16rm : I16rm<0b0100,
                     (outs GR16:$dst), (ins memsrc:$src),
                     "mov.w\t{$src, $dst}",
-                    [(set GR16:$dst, (load addr:$src))]>;
+                    [(set GR16:$dst, (load addr:$src))]> {
+  bits<20> src;
+  bits<4> dst;
+  let Inst{11-8} = src{3-0};
+  let Inst{3-0} = dst;
+}
 }
 
 def MOVZX16rr8 : I8rr<0x0,
@@ -308,9 +317,14 @@ let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$base = $base_wb" in
 def MOV8rm_POST  : IForm8<0x0, DstReg, SrcPostInc, 2,
                          (outs GR8:$dst, GR16:$base_wb), (ins GR16:$base),
                          "mov.b\t{@$base+, $dst}", []>;
-def MOV16rm_POST : IForm16<0x0, DstReg, SrcPostInc, 2,
+def MOV16rm_POST : IForm16<0b0100, DstReg, SrcPostInc, 2,
                            (outs GR16:$dst, GR16:$base_wb), (ins GR16:$base),
-                           "mov.w\t{@$base+, $dst}", []>;
+                           "mov.w\t{@$base+, $dst}", []> {
+  bits<4> dst;
+  bits<4> base;
+  let Inst{11-8} = base;
+  let Inst{3-0} = dst;
+}
 }
 
 // Any instruction that defines a 8-bit result leaves the high half of the

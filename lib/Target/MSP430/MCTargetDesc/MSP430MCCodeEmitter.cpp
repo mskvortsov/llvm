@@ -60,6 +60,10 @@ public:
   unsigned getMachineOpValue(const MCInst &MI, const MCOperand &MO,
                              SmallVectorImpl<MCFixup> &Fixups,
                              const MCSubtargetInfo &STI) const;
+
+  unsigned getMemOperandValue(const MCInst &MI, unsigned Op,
+                              SmallVectorImpl<MCFixup> &Fixups,
+                              const MCSubtargetInfo &STI) const;
 };
 
 void MSP430MCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
@@ -90,6 +94,16 @@ unsigned MSP430MCCodeEmitter::getMachineOpValue(const MCInst &MI,
 
   assert(0 && "NYI");
 }
+
+unsigned MSP430MCCodeEmitter::getMemOperandValue(const MCInst &MI,
+                                                 unsigned Op,
+                                                 SmallVectorImpl<MCFixup> &Fixups,
+                                                 const MCSubtargetInfo &STI) const {
+  const MCOperand &MO = MI.getOperand(Op);
+  assert(MO.isReg() && "Register operand expected");
+  return Ctx.getRegisterInfo()->getEncodingValue(MO.getReg());
+}
+
 MCCodeEmitter *createMSP430MCCodeEmitter(const MCInstrInfo &MCII,
                                          const MCRegisterInfo &MRI,
                                          MCContext &Ctx) {

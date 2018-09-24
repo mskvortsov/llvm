@@ -92,6 +92,12 @@ unsigned MSP430MCCodeEmitter::getMachineOpValue(const MCInst &MI,
     return Reg;
   }
 
+  if (MO.isExpr()) {
+    // TODO
+    return 0;
+  }
+
+  dbgs() << MO << "\n";
   assert(0 && "NYI");
 }
 

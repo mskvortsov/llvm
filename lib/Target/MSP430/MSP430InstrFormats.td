@@ -43,19 +43,21 @@ class MSP430Inst<dag outs, dag ins, int size, string asmstr> : Instruction {
 // FIXME: Create different classes for different addressing modes.
 
 // MSP430 Double Operand (Format I) Instructions
-class IForm<bits<4> opcode, DestMode dest, bit bw, SourceMode src, int size,
+class IForm<bits<4> opcode, DestMode ad, bit bw, SourceMode as, int size,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, size, asmstr> {
   let Pattern = pattern;
   let Size = size;
 
-  DestMode ad = dest;
-  SourceMode as = src;
-  
+  bits<20> src;
+  bits<20> dst;
+
   let Inst{15-12} = opcode;
+  let Inst{11-8}  = src{3-0};
   let Inst{7}     = ad.Value;
   let Inst{6}     = bw;
   let Inst{5-4}   = as.Value;
+  let Inst{3-0}   = dst{3-0};
 }
 
 // 8 bit IForm instructions
@@ -117,59 +119,61 @@ class I16mm<bits<4> opcode,
   : IForm16<opcode, DstMem, SrcMem, 6, outs, ins, asmstr, pattern>;
 
 // MSP430 Single Operand (Format II) Instructions
-class IIForm<bits<9> opcode, bit bw, SourceMode src, int size,
+class IIForm<bits<3> opcode, bit bw, SourceMode as, int size,
              dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, size, asmstr> {
   let Pattern = pattern;
-  
-  SourceMode as = src;
 
-  let Inst{7-15} = opcode;
-  let Inst{6}    = bw;
-  let Inst{4-5}  = as.Value;
+  bits<20> src;
+
+  let Inst{15-10} = 0b000100;
+  let Inst{9-7}   = opcode;
+  let Inst{6}     = bw;
+  let Inst{5-4}   = as.Value;
+  let Inst{3-0}   = src{3-0};
 }
 
 // 8 bit IIForm instructions
-class IIForm8<bits<9> opcode, SourceMode src, int size,
+class IIForm8<bits<3> opcode, SourceMode src, int size,
               dag outs, dag ins, string asmstr, list<dag> pattern>
   : IIForm<opcode, 1, src, size, outs, ins, asmstr, pattern>;
 
-class II8r<bits<9> opcode,
+class II8r<bits<3> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IIForm8<opcode, SrcReg, 2, outs, ins, asmstr, pattern>;
 
-class II8m<bits<9> opcode,
+class II8m<bits<3> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IIForm8<opcode, SrcMem, 4, outs, ins, asmstr, pattern>;
 
-class II8i<bits<9> opcode,
+class II8i<bits<3> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IIForm8<opcode, SrcImm, 4, outs, ins, asmstr, pattern>;
 
 // 16 bit IIForm instructions
-class IIForm16<bits<9> opcode, SourceMode src, int size,
+class IIForm16<bits<3> opcode, SourceMode src, int size,
                dag outs, dag ins, string asmstr, list<dag> pattern>
   : IIForm<opcode, 0, src, size, outs, ins, asmstr, pattern>;
 
-class II16r<bits<9> opcode,
+class II16r<bits<3> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IIForm16<opcode, SrcReg, 2, outs, ins, asmstr, pattern>;
 
-class II16m<bits<9> opcode,
+class II16m<bits<3> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IIForm16<opcode, SrcMem, 4, outs, ins, asmstr, pattern>;
 
-class II16i<bits<9> opcode,
+class II16i<bits<3> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IIForm16<opcode, SrcImm, 4, outs, ins, asmstr, pattern>;
 
 // MSP430 Conditional Jumps Instructions
-class CJForm<bits<3> opcode, bits<3> cond,
+class CJForm<bits<3> cond,
              dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, 2, asmstr> {
   let Pattern = pattern;
   
-  let Inst{13-15} = opcode;
+  let Inst{13-15} = 0b001;
   let Inst{10-12} = cond;
 }
 
@@ -177,5 +181,4 @@ class CJForm<bits<3> opcode, bits<3> cond,
 class Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, 0, asmstr> {
   let Pattern = pattern;
-  let Inst{15-0} = 0;
 }

@@ -15,13 +15,18 @@
 #define LLVM_LIB_TARGET_MSP430_MCTARGETDESC_MSP430MCTARGETDESC_H
 
 #include "llvm/Support/DataTypes.h"
+#include <memory>
 
 namespace llvm {
 class Target;
+class MCAsmBackend;
 class MCCodeEmitter;
 class MCInstrInfo;
+class MCSubtargetInfo;
 class MCRegisterInfo;
 class MCContext;
+class MCTargetOptions;
+class MCObjectTargetWriter;
 
 Target &getTheMSP430Target();
 
@@ -29,6 +34,14 @@ Target &getTheMSP430Target();
 MCCodeEmitter *createMSP430MCCodeEmitter(const MCInstrInfo &MCII,
                                          const MCRegisterInfo &MRI,
                                          MCContext &Ctx);
+
+MCAsmBackend *createMSP430MCAsmBackend(const Target &T,
+                                       const MCSubtargetInfo &STI,
+                                       const MCRegisterInfo &MRI,
+                                       const MCTargetOptions &Options);
+
+std::unique_ptr<MCObjectTargetWriter>
+createMSP430ELFObjectWriter(uint8_t OSABI);
 
 } // End llvm namespace
 

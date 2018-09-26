@@ -181,7 +181,7 @@ def NOP : Pseudo<(outs), (ins), "nop", []>;
 let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
   def RET  : IForm16<0b0100, DstReg, SrcPostInc, 2,
                      (outs), (ins), "ret",  [(MSP430retflag)]> {
-    let src = 2;
+    let src = 1;
     let dst = 0;
   }
   def RETI : IIForm16<0b110, SrcReg, 2,
@@ -249,11 +249,13 @@ let isCall = 1,
 let Defs = [SP], Uses = [SP], hasSideEffects=0 in {
 let mayLoad = 1 in
 def POP16r   : IForm16<0b0100, DstReg, SrcPostInc, 2,
-                       (outs GR16:$dst), (ins), "pop.w\t$dst", []>;
+                       (outs GR16:$dst), (ins), "pop.w\t$dst", []> {
+  let src = 1;
+}
 
 let mayStore = 1 in
 def PUSH16r  : II16r<0b100,
-                     (outs), (ins GR16:$src), "push.w\t$src",[]>;
+                     (outs), (ins GR16:$src), "push.w\t$src", []>;
 }
 
 //===----------------------------------------------------------------------===//

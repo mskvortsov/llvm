@@ -64,11 +64,12 @@ public:
   const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
 
   bool mayNeedRelaxation(const MCInst &Inst,
-                         const MCSubtargetInfo &STI) const override;
+                         const MCSubtargetInfo &STI) const override {
+    return false;
+  }
 
   void relaxInstruction(const MCInst &Inst, const MCSubtargetInfo &STI,
-                        MCInst &Res) const override;
-
+                        MCInst &Res) const override {}
 
   bool writeNopData(raw_ostream &OS, uint64_t Count) const override;
 };
@@ -120,19 +121,16 @@ const MCFixupKindInfo &MSP430AsmBackend::getFixupKindInfo(MCFixupKind Kind) cons
   assert(0 && "NYI");
 }
 
-bool MSP430AsmBackend::mayNeedRelaxation(const MCInst &Inst,
-                         const MCSubtargetInfo &STI) const {
-  assert(0 && "NYI");
-}
-
-void MSP430AsmBackend::relaxInstruction(const MCInst &Inst,
-                                        const MCSubtargetInfo &STI,
-                                        MCInst &Res) const {
-  assert(0 && "NYI");
-}
-
 bool MSP430AsmBackend::writeNopData(raw_ostream &OS, uint64_t Count) const {
-  assert(0 && "NYI");
+  if ((Count % 2) != 0)
+    return false;
+
+  // The canonical nop on MSP430 is mov #0, r3
+  uint64_t NopCount = Count / 2;
+  while (NopCount--)
+    OS.write("\x03\x43", 2);
+
+  return true;
 }
 
 } // end anonymous namespace

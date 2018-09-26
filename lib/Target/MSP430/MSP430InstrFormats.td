@@ -37,7 +37,8 @@ class MSP430Inst<dag outs, dag ins, int size, string asmstr> : Instruction {
   dag OutOperandList = outs;
   dag InOperandList  = ins;
 
-  let AsmString   = asmstr;
+  let AsmString = asmstr;
+  let Size = size;
 }
 
 // FIXME: Create different classes for different addressing modes.
@@ -47,7 +48,6 @@ class IForm<bits<4> opcode, DestMode ad, bit bw, SourceMode as, int size,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, size, asmstr> {
   let Pattern = pattern;
-  let Size = size;
 
   bits<20> src;
   bits<20> dst;

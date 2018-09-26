@@ -36,7 +36,9 @@ public:
       : MCAsmBackend(support::little), STI(STI), OSABI(OSABI) {}
   ~MSP430AsmBackend() override {}
 
-  bool requiresDiffExpressionRelocations() const override;
+  bool requiresDiffExpressionRelocations() const override {
+    return false; // TODO
+  }
 
   void applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
                   const MCValue &Target, MutableArrayRef<char> Data,
@@ -59,7 +61,9 @@ public:
                                     const MCAsmLayout &Layout,
                                     const bool WasForced) const override;
 
-  unsigned getNumFixupKinds() const override;
+  unsigned getNumFixupKinds() const override {
+    return MSP430::NumTargetFixupKinds;
+  }
 
   const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
 
@@ -74,16 +78,28 @@ public:
   bool writeNopData(raw_ostream &OS, uint64_t Count) const override;
 };
 
-bool MSP430AsmBackend::requiresDiffExpressionRelocations() const {
-  assert(0 && "NYI");
-}
-
 void MSP430AsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
                                   const MCValue &Target,
                                   MutableArrayRef<char> Data,
                                   uint64_t Value, bool IsResolved,
                                   const MCSubtargetInfo *STI) const {
-  assert(0 && "NYI");
+  MCFixupKindInfo Info = getFixupKindInfo(Fixup.getKind());
+  if (!Value)
+    return; // Doesn't change encoding.
+
+  // Shift the value into position.
+  Value <<= Info.TargetOffset;
+
+  unsigned Offset = Fixup.getOffset();
+  unsigned NumBytes = alignTo(Info.TargetSize + Info.TargetOffset, 8) / 8;
+
+  assert(Offset + NumBytes <= Data.size() && "Invalid fixup offset!");
+
+  // For each byte of the fragment that the fixup touches, mask in the
+  // bits from the fixup value.
+  for (unsigned i = 0; i != NumBytes; ++i) {
+    Data[Offset + i] |= uint8_t((Value >> (i * 8)) & 0xff);
+  }
 }
 
 std::unique_ptr<MCObjectTargetWriter>
@@ -94,7 +110,7 @@ MSP430AsmBackend::createObjectTargetWriter() const {
 bool MSP430AsmBackend::shouldForceRelocation(const MCAssembler &Asm,
                                              const MCFixup &Fixup,
                                              const MCValue &Target) {
-  assert(0 && "NYI");
+  return true; // TODO
 }
 
 bool MSP430AsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,
@@ -113,12 +129,24 @@ bool MSP430AsmBackend::fixupNeedsRelaxationAdvanced(const MCFixup &Fixup,
   assert(0 && "NYI");
 }
 
-unsigned MSP430AsmBackend::getNumFixupKinds() const {
-  assert(0 && "NYI");
-}
-
 const MCFixupKindInfo &MSP430AsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
-  assert(0 && "NYI");
+  const static MCFixupKindInfo Infos[MSP430::NumTargetFixupKinds] = {
+    {"fixup_32", 0, 32, 0},
+    {"fixup_10_pcrel", 0, 10, MCFixupKindInfo::FKF_IsPCRel},
+    {"fixup_16", 0, 16, 0},
+    {"fixup_16_pcrel", 0, 16, MCFixupKindInfo::FKF_IsPCRel},
+    {"fixup_16_byte", 0, 16, 0},
+    {"fixup_16_pcrel_byte", 0, 16, MCFixupKindInfo::FKF_IsPCRel},
+    {"fixup_2x_pcrel", 0, 0, MCFixupKindInfo::FKF_IsPCRel},
+    {"fixup_rl_pcrel", 0, 0, MCFixupKindInfo::FKF_IsPCRel},
+    {"fixup_8", 0, 8, 0},
+    {"fixup_sym_diff", 0, 0, 0},
+  };
+
+  if (Kind < FirstTargetFixupKind)
+    return MCAsmBackend::getFixupKindInfo(Kind);
+
+  return Infos[Kind - FirstTargetFixupKind];
 }
 
 bool MSP430AsmBackend::writeNopData(raw_ostream &OS, uint64_t Count) const {
@@ -139,7 +167,5 @@ MCAsmBackend *llvm::createMSP430MCAsmBackend(const Target &T,
                                              const MCSubtargetInfo &STI,
                                              const MCRegisterInfo &MRI,
                                              const MCTargetOptions &Options) {
-  const Triple &TT = STI.getTargetTriple();
-  uint8_t OSABI = MCELFObjectTargetWriter::getOSABI(TT.getOS());
-  return new MSP430AsmBackend(STI, OSABI);
+  return new MSP430AsmBackend(STI, ELF::ELFOSABI_STANDALONE);
 }

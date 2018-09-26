@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "MCTargetDesc/MSP430MCTargetDesc.h"
+#include "MCTargetDesc/MSP430FixupKinds.h"
 
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/SmallVector.h"
@@ -87,13 +88,15 @@ unsigned MSP430MCCodeEmitter::getMachineOpValue(const MCInst &MI,
                                                 const MCOperand &MO,
                                                 SmallVectorImpl<MCFixup> &Fixups,
                                                 const MCSubtargetInfo &STI) const {
-  if (MO.isReg()) {
-    unsigned Reg = Ctx.getRegisterInfo()->getEncodingValue(MO.getReg());
-    return Reg;
-  }
+  if (MO.isReg())
+    return Ctx.getRegisterInfo()->getEncodingValue(MO.getReg());
+
+  if (MO.isImm())
+    return MO.getImm() << 4;
 
   if (MO.isExpr()) {
-    // TODO
+    Fixups.push_back(MCFixup::create(2, MO.getExpr(),
+      static_cast<MCFixupKind>(MSP430::fixup_16_byte), MI.getLoc()));
     return 0;
   }
 
@@ -105,9 +108,33 @@ unsigned MSP430MCCodeEmitter::getMemOperandValue(const MCInst &MI,
                                                  unsigned Op,
                                                  SmallVectorImpl<MCFixup> &Fixups,
                                                  const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(Op);
-  assert(MO.isReg() && "Register operand expected");
-  return Ctx.getRegisterInfo()->getEncodingValue(MO.getReg());
+  const MCOperand &MO1 = MI.getOperand(Op);
+  assert(MO1.isReg() && "Register operand expected");
+  unsigned Reg = Ctx.getRegisterInfo()->getEncodingValue(MO1.getReg());
+
+  const MCOperand &MO2 = MI.getOperand(Op + 1);
+  if (MO2.isImm())
+    return (MO2.getImm() << 4) | Reg;
+
+  assert(MO2.isExpr() && "Expr operand expected");
+  MSP430::Fixups FixupKind;
+  switch (Reg) {
+  case 0:
+    FixupKind = MSP430::fixup_16_pcrel_byte;
+    break;
+  case 2:
+    FixupKind = MSP430::fixup_16;
+    break;
+  default:
+    FixupKind = MSP430::fixup_16_byte;
+    break;
+  }
+  unsigned Offset = 2;
+  if ((MI.getNumOperands() == 4) && (Op == 0))
+    Offset = 4;
+  Fixups.push_back(MCFixup::create(Offset, MO2.getExpr(),
+    static_cast<MCFixupKind>(FixupKind), MI.getLoc()));
+  return Reg;
 }
 
 MCCodeEmitter *createMSP430MCCodeEmitter(const MCInstrInfo &MCII,

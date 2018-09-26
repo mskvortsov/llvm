@@ -17,6 +17,20 @@
 namespace llvm {
 namespace MSP430 {
 enum Fixups {
+  fixup_32 = FirstTargetFixupKind,
+  fixup_10_pcrel,
+  fixup_16,
+  fixup_16_pcrel,
+  fixup_16_byte,
+  fixup_16_pcrel_byte,
+  fixup_2x_pcrel,
+  fixup_rl_pcrel,
+  fixup_8,
+  fixup_sym_diff,
+
+  // Marker
+  LastTargetFixupKind,
+  NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind
 };
 } // end namespace MSP430
 } // end namespace llvm

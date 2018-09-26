@@ -30,7 +30,7 @@ def DstMem      : DestMode<1>;
 
 // Generic MSP430 Format
 class MSP430Inst<dag outs, dag ins, int size, string asmstr> : Instruction {
-  field bits<16> Inst;
+  field bits<48> Inst;
 
   let Namespace = "MSP430";
 
@@ -71,7 +71,9 @@ class I8rr<bits<4> opcode,
 
 class I8ri<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm8<opcode, DstReg, SrcImm, 4, outs, ins, asmstr, pattern>;
+  : IForm8<opcode, DstReg, SrcImm, 4, outs, ins, asmstr, pattern> {
+  let Inst{31-16} = src{19-4};
+}
 
 class I8rm<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
@@ -83,7 +85,9 @@ class I8mr<bits<4> opcode,
 
 class I8mi<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm8<opcode, DstMem, SrcImm, 6, outs, ins, asmstr, pattern>;
+  : IForm8<opcode, DstMem, SrcImm, 6, outs, ins, asmstr, pattern> {
+  let Inst{31-16} = src{19-4};
+}
 
 class I8mm<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
@@ -100,11 +104,15 @@ class I16rr<bits<4> opcode,
 
 class I16ri<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm16<opcode, DstReg, SrcImm, 4, outs, ins, asmstr, pattern>;
+  : IForm16<opcode, DstReg, SrcImm, 4, outs, ins, asmstr, pattern> {
+  let Inst{31-16} = src{19-4};
+}
 
 class I16rm<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm16<opcode, DstReg, SrcMem, 4, outs, ins, asmstr, pattern>;
+  : IForm16<opcode, DstReg, SrcMem, 4, outs, ins, asmstr, pattern> {
+  let Inst{31-16} = src{19-4};
+}
 
 class I16mr<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
@@ -112,7 +120,10 @@ class I16mr<bits<4> opcode,
 
 class I16mi<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm16<opcode, DstMem, SrcImm, 6, outs, ins, asmstr, pattern>;
+  : IForm16<opcode, DstMem, SrcImm, 6, outs, ins, asmstr, pattern> {
+  let Inst{31-16} = src{19-4};
+  let Inst{47-32} = dst{19-4};
+}
 
 class I16mm<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>

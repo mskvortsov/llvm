@@ -179,13 +179,16 @@ class II16i<bits<3> opcode,
   : IIForm16<opcode, SrcImm, 4, outs, ins, asmstr, pattern>;
 
 // MSP430 Conditional Jumps Instructions
-class CJForm<bits<3> cond,
-             dag outs, dag ins, string asmstr, list<dag> pattern>
+class CJForm<dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, 2, asmstr> {
   let Pattern = pattern;
   
-  let Inst{13-15} = 0b001;
-  let Inst{10-12} = cond;
+  bits<3> cond;
+  bits<10> dst;
+
+  let Inst{15-13} = 0b001;
+  let Inst{12-10} = cond;
+  let Inst{9-0} = dst;
 }
 
 // Pseudo instructions

@@ -110,7 +110,8 @@ MSP430AsmBackend::createObjectTargetWriter() const {
 bool MSP430AsmBackend::shouldForceRelocation(const MCAssembler &Asm,
                                              const MCFixup &Fixup,
                                              const MCValue &Target) {
-  return true; // TODO
+  // TODO
+  return false;
 }
 
 bool MSP430AsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,

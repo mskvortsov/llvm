@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "MSP430.h"
 #include "MCTargetDesc/MSP430MCTargetDesc.h"
 #include "MCTargetDesc/MSP430FixupKinds.h"
 
@@ -65,6 +66,14 @@ public:
   unsigned getMemOperandValue(const MCInst &MI, unsigned Op,
                               SmallVectorImpl<MCFixup> &Fixups,
                               const MCSubtargetInfo &STI) const;
+
+  unsigned getPCRelImmValue(const MCInst &MI, unsigned Op,
+                            SmallVectorImpl<MCFixup> &Fixups,
+                            const MCSubtargetInfo &STI) const;
+
+  unsigned getCCValue(const MCInst &MI, unsigned Op,
+                      SmallVectorImpl<MCFixup> &Fixups,
+                      const MCSubtargetInfo &STI) const;
 };
 
 void MSP430MCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
@@ -135,6 +144,39 @@ unsigned MSP430MCCodeEmitter::getMemOperandValue(const MCInst &MI,
   Fixups.push_back(MCFixup::create(Offset, MO2.getExpr(),
     static_cast<MCFixupKind>(FixupKind), MI.getLoc()));
   return Reg;
+}
+
+unsigned MSP430MCCodeEmitter::getPCRelImmValue(const MCInst &MI, unsigned Op,
+                                               SmallVectorImpl<MCFixup> &Fixups,
+                                               const MCSubtargetInfo &STI) const {
+  const MCOperand &MO = MI.getOperand(Op);
+  assert(MO.isExpr() && "Expr operand expected");
+  Fixups.push_back(MCFixup::create(0, MO.getExpr(),
+    static_cast<MCFixupKind>(MSP430::fixup_10_pcrel), MI.getLoc()));
+  return 0;
+}
+
+unsigned MSP430MCCodeEmitter::getCCValue(const MCInst &MI, unsigned Op,
+                                         SmallVectorImpl<MCFixup> &Fixups,
+                                         const MCSubtargetInfo &STI) const {
+  const MCOperand &MO = MI.getOperand(Op);
+  assert(MO.isImm() && "Immediate operand expected");
+  switch (MO.getImm()) {
+  case MSP430CC::COND_E:
+    return 1;
+  case MSP430CC::COND_NE:
+    return 0;
+  case MSP430CC::COND_HS:
+    return 3;
+  case MSP430CC::COND_LO:
+    return 2;
+  case MSP430CC::COND_GE:
+    return 5;
+  case MSP430CC::COND_L:
+    return 6;
+  default:
+    llvm_unreachable("Unknown condition code");
+  }
 }
 
 MCCodeEmitter *createMSP430MCCodeEmitter(const MCInstrInfo &MCII,

@@ -93,11 +93,13 @@ def memdst : Operand<i16> {
 // Short jump targets have OtherVT type and are printed as pcrel imm values.
 def jmptarget : Operand<OtherVT> {
   let PrintMethod = "printPCRelImmOperand";
+  let EncoderMethod = "getPCRelImmValue";
 }
 
 // Operand for printing out a condition code.
 def cc : Operand<i8> {
   let PrintMethod = "printCCOperand";
+  let EncoderMethod = "getCCValue";
 }
 
 //===----------------------------------------------------------------------===//
@@ -197,9 +199,11 @@ let isBranch = 1, isTerminator = 1 in {
 // Direct branch
 let isBarrier = 1 in {
   // Short branch
-  def JMP : CJForm<0b111, (outs), (ins jmptarget:$dst),
+  def JMP : CJForm<(outs), (ins jmptarget:$dst),
                    "jmp\t$dst",
-                   [(br bb:$dst)]>;
+                   [(br bb:$dst)]> {
+    let cond = 0b111;
+  }
   let isIndirectBranch = 1 in {
     // Long branches
     def Bi  : I16ri<0b0100, (outs), (ins i16imm:$dst),
@@ -216,10 +220,9 @@ let isBarrier = 1 in {
 
 // Conditional branches
 let Uses = [SR] in
-  def JCC : CJForm<0,
-                   (outs), (ins jmptarget:$dst, cc:$cc),
-                   "j$cc\t$dst",
-                   [(MSP430brcc bb:$dst, imm:$cc)]>;
+  def JCC : CJForm<(outs), (ins jmptarget:$dst, cc:$cond),
+                   "j$cond\t$dst",
+                   [(MSP430brcc bb:$dst, imm:$cond)]>;
 } // isBranch, isTerminator
 
 //===----------------------------------------------------------------------===//

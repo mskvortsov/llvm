@@ -36,6 +36,9 @@ public:
       : MCAsmBackend(support::little), STI(STI), OSABI(OSABI) {}
   ~MSP430AsmBackend() override {}
 
+  uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
+                            MCContext &Ctx) const;
+
   bool requiresDiffExpressionRelocations() const override {
     return false; // TODO
   }
@@ -78,11 +81,41 @@ public:
   bool writeNopData(raw_ostream &OS, uint64_t Count) const override;
 };
 
+uint64_t MSP430AsmBackend::adjustFixupValue(const MCFixup &Fixup,
+                                            uint64_t Value,
+                                            MCContext &Ctx) const {
+  unsigned Kind = Fixup.getKind();
+  switch (Kind) {
+  case MSP430::fixup_10_pcrel: {
+    if (Value & 0x1)
+      Ctx.reportError(Fixup.getLoc(), "fixup value must be 2-byte aligned");
+
+    // Offset is signed
+    int16_t Offset = Value;
+    // Jumps are in words
+    Offset >>= 1;
+    // PC points to the next instruction so decrement by one
+    --Offset;
+
+    if (Offset < -512 || Offset > 511)
+      Ctx.reportError(Fixup.getLoc(), "fixup value out of range");
+
+    // Mask 10 bits
+    Offset &= 0x3ff;
+
+    return Offset;
+  }
+  default:
+    return Value;
+  }
+}
+
 void MSP430AsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
                                   const MCValue &Target,
                                   MutableArrayRef<char> Data,
                                   uint64_t Value, bool IsResolved,
                                   const MCSubtargetInfo *STI) const {
+  Value = adjustFixupValue(Fixup, Value, Asm.getContext());
   MCFixupKindInfo Info = getFixupKindInfo(Fixup.getKind());
   if (!Value)
     return; // Doesn't change encoding.

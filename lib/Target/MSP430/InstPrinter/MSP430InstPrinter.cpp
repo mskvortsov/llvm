@@ -72,7 +72,7 @@ void MSP430InstPrinter::printSrcMemOperand(const MCInst *MI, unsigned OpNo,
   // vs
   //   mov.w glb(r1), r2
   // Otherwise (!) msp430-as will silently miscompile the output :(
-  if (!Base.getReg())
+  if (Base.getReg() == MSP430::SR)
     O << '&';
 
   if (Disp.isExpr())
@@ -83,7 +83,8 @@ void MSP430InstPrinter::printSrcMemOperand(const MCInst *MI, unsigned OpNo,
   }
 
   // Print register base field
-  if (Base.getReg())
+  if ((Base.getReg() != MSP430::SR) &&
+      (Base.getReg() != MSP430::PC))
     O << '(' << getRegisterName(Base.getReg()) << ')';
 }
 

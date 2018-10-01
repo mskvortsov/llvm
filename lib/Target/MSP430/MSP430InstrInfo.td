@@ -36,6 +36,9 @@ def SDT_MSP430SelectCC     : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
                                                   SDTCisVT<3, i8>]>;
 def SDT_MSP430Shift        : SDTypeProfile<1, 2, [SDTCisSameAs<0, 1>,
                                                   SDTCisI8<2>]>;
+def SDT_MSP430DAdd         : SDTypeProfile<1, 2, [SDTCisSameAs<0, 1>,
+                                                  SDTCisSameAs<0, 2>,
+                                                  SDTCisInt<0>]>;
 
 //===----------------------------------------------------------------------===//
 // MSP430 Specific Node Definitions.
@@ -66,6 +69,7 @@ def MSP430selectcc: SDNode<"MSP430ISD::SELECT_CC", SDT_MSP430SelectCC,
 def MSP430shl     : SDNode<"MSP430ISD::SHL", SDT_MSP430Shift, []>;
 def MSP430sra     : SDNode<"MSP430ISD::SRA", SDT_MSP430Shift, []>;
 def MSP430srl     : SDNode<"MSP430ISD::SRL", SDT_MSP430Shift, []>;
+def MSP430dadd    : SDNode<"MSP430ISD::DADD", SDT_MSP430DAdd, []>;
 
 //===----------------------------------------------------------------------===//
 // MSP430 Operand Definitions.
@@ -442,6 +446,7 @@ defm BIC : Arith<0b1100, "bic",  bic,  0, []>;
 defm XOR : Arith<0b1110, "xor",  xor,  1, []>;
 defm SUB : Arith<0b1000, "sub",  sub,  0, []>;
 defm SBC : Arith<0b0111, "subc", sube, 0, [SR]>;
+defm DADD : Arith<0b1010, "dadd", MSP430dadd, 1, [SR]>;
 
 let Constraints = "$src = $dst" in {
 

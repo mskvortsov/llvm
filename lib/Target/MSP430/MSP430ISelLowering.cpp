@@ -1351,6 +1351,7 @@ const char *MSP430TargetLowering::getTargetNodeName(unsigned Opcode) const {
   case MSP430ISD::SHL:                return "MSP430ISD::SHL";
   case MSP430ISD::SRA:                return "MSP430ISD::SRA";
   case MSP430ISD::SRL:                return "MSP430ISD::SRL";
+  case MSP430ISD::DADD:               return "MSP430ISD::DADD";
   }
   return nullptr;
 }

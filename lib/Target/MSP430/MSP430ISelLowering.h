@@ -62,7 +62,10 @@ namespace llvm {
       SELECT_CC,
 
       /// SHL, SRA, SRL - Non-constant shifts.
-      SHL, SRA, SRL
+      SHL, SRA, SRL,
+
+      /// DADD - Decimal addition with carry
+      DADD,
     };
   }
 

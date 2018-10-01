@@ -29,18 +29,18 @@ foo:
   and    r7, r8 ; CHECK: and    r7, r8 ; encoding: [0x08,0xf7]
 
   ;; IIForm8 instructions
-;  rrc.b  r7     ; HECK: rrc.b  r7     ; encoding: [0x47,0x10]
-;  rra.b  r7     ; HECK: rra.b  r7     ; encoding: [0x47,0x11]
-;  push.b r7     ; HECK: push.b r7     ; encoding: [0x47,0x12]
+  rrc.b  r7     ; CHECK: rrc.b  r7     ; encoding: [0x47,0x10]
+  rra.b  r7     ; CHECK: rra.b  r7     ; encoding: [0x47,0x11]
+  push.b r7     ; CHECK: push.b r7     ; encoding: [0x47,0x12]
 
   ;; IIForm16 instructions
-;  rrc    r7     ; HECK: rrc    r7     ; encoding: [0x07,0x10]
-;  swpb   r7     ; HECK: swpb   r7     ; encoding: [0x87,0x10]
-;  rra    r7     ; HECK: rra    r7     ; encoding: [0x07,0x11]
-;  sxt    r7     ; HECK: sxt    r7     ; encoding: [0x87,0x11]
-;  push   r7     ; HECK: push   r7     ; encoding: [0x07,0x12]
-;  call   r7     ; HECK: call   r7     ; encoding: [0x87,0x12]
-;  reti          ; HECK: reti   r7     ; encoding: [0x00,0x13]
+  rrc    r7     ; CHECK: rrc    r7     ; encoding: [0x07,0x10]
+  swpb   r7     ; CHECK: swpb   r7     ; encoding: [0x87,0x10]
+  rra    r7     ; CHECK: rra    r7     ; encoding: [0x07,0x11]
+  sxt    r7     ; CHECK: sxt    r7     ; encoding: [0x87,0x11]
+  push   r7     ; CHECK: push   r7     ; encoding: [0x07,0x12]
+  call   r7     ; CHECK: call   r7     ; encoding: [0x87,0x12]
+  reti          ; CHECK: reti          ; encoding: [0x00,0x13]
 
   ;; CJForm instructions
 ;  jnz    foo    ; HECK: jnz    foo    ; encoding: [0x00,0x20]

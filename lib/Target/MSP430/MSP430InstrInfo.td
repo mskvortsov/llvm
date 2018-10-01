@@ -261,8 +261,8 @@ def POP16r   : IForm16<0b0100, DstReg, SrcPostInc, 2,
 }
 
 let mayStore = 1 in
-def PUSH16r  : II16r<0b100,
-                     (outs), (ins GR16:$src), "push\t$src", []>;
+def PUSH8r :  II8r<0b100, (outs), (ins GR8:$src), "push.b\t$src", []>;
+def PUSH16r : II16r<0b100, (outs), (ins GR16:$src), "push\t$src", []>;
 }
 
 //===----------------------------------------------------------------------===//
@@ -487,6 +487,17 @@ def SAR16r1c : Pseudo<(outs GR16:$dst), (ins GR16:$src),
                       [(set GR16:$dst, (MSP430rrc GR16:$src)),
                        (implicit SR)]>;
 }
+
+def RRC8r :   II8r<0b000,
+                   (outs GR8:$dst), (ins GR8:$src),
+                   "rrc.b $dst",
+                   [(set GR8:$dst, (MSP430rrc GR8:$src)),
+                    (implicit SR)]>;
+def RRC16r : II16r<0b000,
+                   (outs GR16:$dst), (ins GR16:$src),
+                   "rrc $dst",
+                   [(set GR16:$dst, (MSP430rrc GR16:$src)),
+                    (implicit SR)]>;
 
 // FIXME: Memory sext's ?
 def SEXT16r : II16r<0b011,

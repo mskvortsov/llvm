@@ -79,6 +79,7 @@ def MSP430AsmWriter : AsmWriter {
 
 def MSP430AsmParser : AsmParser {
   let AllowDuplicateRegisterNames = 1;
+  let ShouldEmitMatchRegisterAltName = 1;
 }
 
 def MSP430AsmParserVariant : AsmParserVariant {

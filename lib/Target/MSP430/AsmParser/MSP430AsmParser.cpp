@@ -276,6 +276,10 @@ bool MSP430AsmParser::ParseRegister(unsigned &RegNo, SMLoc &StartLoc,
 bool MSP430AsmParser::ParseInstruction(ParseInstructionInfo &Info,
                                        StringRef Name, SMLoc NameLoc,
                                        OperandVector &Operands) {
+  // Drop .w suffix
+  if (Name.endswith_lower(".w"))
+    Name = Name.drop_back(2);
+
   // First operand is instruction mnemonic
   Operands.push_back(MSP430Operand::CreateToken(Name, NameLoc));
 

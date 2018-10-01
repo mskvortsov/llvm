@@ -27,6 +27,7 @@ namespace MSP430CC {
     COND_LO = 3,  // aka COND_NC
     COND_GE = 4,
     COND_L  = 5,
+    COND_N  = 6,  // jump if negative
 
     COND_INVALID = -1
   };

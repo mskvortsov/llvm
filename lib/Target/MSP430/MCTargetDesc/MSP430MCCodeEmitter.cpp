@@ -174,6 +174,8 @@ unsigned MSP430MCCodeEmitter::getCCValue(const MCInst &MI, unsigned Op,
     return 5;
   case MSP430CC::COND_L:
     return 6;
+  case MSP430CC::COND_N:
+    return 4;
   default:
     llvm_unreachable("Unknown condition code");
   }

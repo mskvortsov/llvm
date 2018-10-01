@@ -54,6 +54,9 @@ private:
   unsigned validateTargetOperandClass(MCParsedAsmOperand &Op,
                                       unsigned Kind) override;
 
+  bool parseJccInstruction(ParseInstructionInfo &Info, StringRef Name,
+                           SMLoc NameLoc, OperandVector &Operands);
+
 private:
   bool ParseOperand(OperandVector &Operands);
 
@@ -281,12 +284,66 @@ bool MSP430AsmParser::ParseRegister(unsigned &RegNo, SMLoc &StartLoc,
   return Error(StartLoc, "invalid register name");
 }
 
+bool MSP430AsmParser::parseJccInstruction(ParseInstructionInfo &Info,
+                                          StringRef Name, SMLoc NameLoc,
+                                          OperandVector &Operands) {
+  if (!Name.startswith_lower("j"))
+    return true;
+
+  StringRef CC = Name.drop_front().lower();
+  unsigned CondCode;
+  if (CC == "ne" || CC == "nz")
+    CondCode = MSP430CC::COND_NE;
+  else if (CC == "eq" || CC == "z")
+    CondCode = MSP430CC::COND_E;
+  else if (CC == "lo" || CC == "nc")
+    CondCode = MSP430CC::COND_LO;
+  else if (CC == "hs" || CC == "c")
+    CondCode = MSP430CC::COND_HS;
+  else if (CC == "n")
+    CondCode = MSP430CC::COND_N;
+  else if (CC == "ge")
+    CondCode = MSP430CC::COND_GE;
+  else if (CC == "l")
+    CondCode = MSP430CC::COND_L;
+  else if (CC == "mp")
+    CondCode = MSP430CC::COND_INVALID;
+  else
+    return Error(NameLoc, "unknown instruction");
+
+  if (CondCode == MSP430CC::COND_INVALID)
+    Operands.push_back(MSP430Operand::CreateToken("jmp", NameLoc));
+  else {
+    Operands.push_back(MSP430Operand::CreateToken("j", NameLoc));
+    const MCExpr *CCode = MCConstantExpr::create(CondCode, getContext());
+    Operands.push_back(MSP430Operand::CreateImm(CCode, SMLoc(), SMLoc()));
+  }
+
+  const MCExpr *Val;
+  if (getParser().parseExpression(Val))
+    return Error(getLexer().getLoc(), "expected expression operand");
+
+  Operands.push_back(MSP430Operand::CreateImm(Val, SMLoc(), SMLoc()));
+
+  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+    SMLoc Loc = getLexer().getLoc();
+    getParser().eatToEndOfStatement();
+    return Error(Loc, "unexpected token");
+  }
+
+  getParser().Lex(); // Consume the EndOfStatement.
+  return false;
+}
+
 bool MSP430AsmParser::ParseInstruction(ParseInstructionInfo &Info,
                                        StringRef Name, SMLoc NameLoc,
                                        OperandVector &Operands) {
   // Drop .w suffix
   if (Name.endswith_lower(".w"))
     Name = Name.drop_back(2);
+
+  if (!parseJccInstruction(Info, Name, NameLoc, Operands))
+    return false;
 
   // First operand is instruction mnemonic
   Operands.push_back(MSP430Operand::CreateToken(Name, NameLoc));

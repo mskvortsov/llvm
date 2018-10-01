@@ -113,5 +113,8 @@ void MSP430InstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,
   case MSP430CC::COND_L:
    O << 'l';
    break;
+  case MSP430CC::COND_N:
+   O << 'n';
+   break;
   }
 }

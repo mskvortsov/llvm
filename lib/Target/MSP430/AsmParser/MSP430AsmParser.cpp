@@ -51,6 +51,9 @@ private:
 
   bool ParseDirective(AsmToken DirectiveID) override;
 
+  unsigned validateTargetOperandClass(MCParsedAsmOperand &Op,
+                                      unsigned Kind) override;
+
 private:
   bool ParseOperand(OperandVector &Operands);
 
@@ -90,6 +93,7 @@ private:
     k_Memory
   } Kind;
 
+public:
   struct RegisterImmediate {
     unsigned Reg;
     const MCExpr *Imm;
@@ -424,5 +428,47 @@ extern "C" void LLVMInitializeMSP430AsmParser() {
 #define GET_REGISTER_MATCHER
 #define GET_MATCHER_IMPLEMENTATION
 #include "MSP430GenAsmMatcher.inc"
+
+unsigned convertGR16ToGR8(unsigned Reg) {
+  switch (Reg) {
+  default:
+    llvm_unreachable("Unknown GR16 register");
+  case MSP430::PC:  return MSP430::PCB;
+  case MSP430::SP:  return MSP430::SPB;
+  case MSP430::SR:  return MSP430::SRB;
+  case MSP430::CG:  return MSP430::CGB;
+  case MSP430::FP:  return MSP430::FPB;
+  case MSP430::R5:  return MSP430::R5B;
+  case MSP430::R6:  return MSP430::R6B;
+  case MSP430::R7:  return MSP430::R7B;
+  case MSP430::R8:  return MSP430::R8B;
+  case MSP430::R9:  return MSP430::R9B;
+  case MSP430::R10: return MSP430::R10B;
+  case MSP430::R11: return MSP430::R11B;
+  case MSP430::R12: return MSP430::R12B;
+  case MSP430::R13: return MSP430::R13B;
+  case MSP430::R14: return MSP430::R14B;
+  case MSP430::R15: return MSP430::R15B;
+  }
+}
+
+unsigned MSP430AsmParser::validateTargetOperandClass(MCParsedAsmOperand &AsmOp,
+                                                     unsigned Kind) {
+  MSP430Operand &Op = static_cast<MSP430Operand &>(AsmOp);
+
+  if (!Op.isReg())
+    return Match_InvalidOperand;
+
+  unsigned Reg = Op.getReg();
+  bool isGR16 =
+      MSP430MCRegisterClasses[MSP430::GR16RegClassID].contains(Reg);
+
+  if (isGR16 && (Kind == MCK_GR8)) {
+    Op.RegImm.Reg = convertGR16ToGR8(Reg);
+    return Match_Success;
+  }
+
+  return Match_InvalidOperand;
+}
 
 } // end of namespace llvm

@@ -1,18 +1,18 @@
 ; RUN: llvm-mc -triple msp430 -show-encoding < %s | FileCheck %s
 foo:
   ;; IForm8 instructions
-;  mov.b  r7, r8 ; HECK: mov.b  r7, r8 ; encoding: [0x48,0x47]
-;  add.b  r7, r8 ; HECK: add.b  r7, r8 ; encoding: [0x48,0x57]
-;  addc.b r7, r8 ; HECK: addc.b r7, r8 ; encoding: [0x48,0x67]
-;  subc.b r7, r8 ; HECK: subc.b r7, r8 ; encoding: [0x48,0x77]
-;  sub.b  r7, r8 ; HECK: sub.b  r7, r8 ; encoding: [0x48,0x87]
-;  cmp.b  r7, r8 ; HECK: cmp.b  r7, r8 ; encoding: [0x48,0x97]
+  mov.b  r7, r8 ; CHECK: mov.b  r7, r8 ; encoding: [0x48,0x47]
+  add.b  r7, r8 ; CHECK: add.b  r7, r8 ; encoding: [0x48,0x57]
+  addc.b r7, r8 ; CHECK: addc.b r7, r8 ; encoding: [0x48,0x67]
+  subc.b r7, r8 ; CHECK: subc.b r7, r8 ; encoding: [0x48,0x77]
+  sub.b  r7, r8 ; CHECK: sub.b  r7, r8 ; encoding: [0x48,0x87]
+  cmp.b  r7, r8 ; CHECK: cmp.b  r7, r8 ; encoding: [0x48,0x97]
 ;  dadd.b r7, r8 ; HECK: cmp.b  r7, r8 ; encoding: [0x48,0x97]
-;  bit.b  r7, r8 ; HECK: bit.b  r7, r8 ; encoding: [0x48,0xb7]
-;  bic.b  r7, r8 ; HECK: bic.b  r7, r8 ; encoding: [0x48,0xc7]
-;  bis.b  r7, r8 ; HECK: bis.b  r7, r8 ; encoding: [0x48,0xd7]
-;  xor.b  r7, r8 ; HECK: xor.b  r7, r8 ; encoding: [0x48,0xe7]
-;  and.b  r7, r8 ; HECK: and.b  r7, r8 ; encoding: [0x48,0xf7]
+  bit.b  r7, r8 ; CHECK: bit.b  r7, r8 ; encoding: [0x48,0xb7]
+  bic.b  r7, r8 ; CHECK: bic.b  r7, r8 ; encoding: [0x48,0xc7]
+  bis.b  r7, r8 ; CHECK: bis.b  r7, r8 ; encoding: [0x48,0xd7]
+  xor.b  r7, r8 ; CHECK: xor.b  r7, r8 ; encoding: [0x48,0xe7]
+  and.b  r7, r8 ; CHECK: and.b  r7, r8 ; encoding: [0x48,0xf7]
 
   ;; IForm16 instructions
   mov    r7, r8 ; CHECK: mov    r7, r8 ; encoding: [0x08,0x47]

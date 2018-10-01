@@ -299,6 +299,7 @@ def MOV16rm : I16rm<0b0100,
                     [(set GR16:$dst, (load addr:$src))]>;
 }
 
+let isCodeGenOnly = 1 in {
 def MOVZX16rr8 : I8rr<0b0100,
                       (outs GR16:$dst), (ins GR8:$src),
                       "mov.b\t{$src, $dst}",
@@ -307,6 +308,7 @@ def MOVZX16rm8 : I8rm<0b0100,
                       (outs GR16:$dst), (ins memsrc:$src),
                       "mov.b\t{$src, $dst}",
                       [(set GR16:$dst, (zextloadi16i8 addr:$src))]>;
+}
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$src = $wb" in {
 def MOV8rp  : IForm8<0b0100, DstReg, SrcPostInc, 2,
@@ -490,6 +492,7 @@ def SEXT16r : II16r<0b011,
 
 } // Defs = [SR]
 
+let isCodeGenOnly = 1 in
 def ZEXT16r : I8rr<0b0100,
                    (outs GR16:$dst), (ins GR16:$src),
                    "mov.b\t{$src, $dst}",

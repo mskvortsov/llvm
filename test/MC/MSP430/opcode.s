@@ -70,34 +70,34 @@ foo:
 
 
   ;; Emulated arithmetic instructions
-;  adc    r7     ; addc #0, r7
-;  dadc   r7     ; dadd #0, r7
-;  dec    r7     ; sub  #1, r7
-;  decd   r7     ; sub  #2, r7
-;  inc    r7     ; add  #1, r7
-;  incd   r7     ; add  #2, r7
-;  sbc    r7     ; subc #0, r7
+  adc    r7     ; CHECK: addc   #0, r7 ; encoding: [0x07,0x63]
+  dadc   r7     ; CHECK: dadd   #0, r7 ; encoding: [0x07,0xa3]
+  dec    r7     ; CHECK: sub    #1, r7 ; encoding: [0x17,0x83]
+  decd   r7     ; CHECK: sub    #2, r7 ; encoding: [0x27,0x83]
+  inc    r7     ; CHECK: add    #1, r7 ; encoding: [0x17,0x53]
+  incd   r7     ; CHECK: add    #2, r7 ; encoding: [0x27,0x53]
+  sbc    r7     ; CHECK: subc   #0, r7 ; encoding: [0x07,0x73]
 
   ;; Emulated logical instructions
-;  inv    r7     ; xor  #0xffff, r7
-;  rla    r7     ; add  r7, r7
-;  rlc    r7     ; addc r7, r7
+  inv    r7     ; CHECK: xor   #-1, r7 ; encoding: [0x37,0xe3]
+;  rla    r7     ; HECK: add    r7, r7 ; encoding: [0x07,0x57]
+  rlc    r7     ; CHECK: addc   r7, r7 ; encoding: [0x07,0x67]
 
   ;; Emulated program flow control instructions
 ;  br     r7     ; mov  r7, pc
-;  dint          ; bic  #8, sr
-;  eint          ; bis  #8, sr
+  dint          ; CHECK: bic    #8, r2 ; encoding: [0x32,0xc2]
+  eint          ; CHECK: bis    #8, r2 ; encoding: [0x32,0xd2]
 ;  nop           ; mov  #0, r3
 ;  ret           ; mov  @sp+, pc
 
   ;; Emulated data instruction
-;  clr    r7     ; mov  #0, r7
-;  clrc          ; bic  #1, sr
-;  clrn          ; bic  #4, sr
-;  clrz          ; bic  #2, sr
+  clr    r7     ; CHECK: mov    #0, r7 ; encoding: [0x07,0x43]
+  clrc          ; CHECK: bic    #1, r2 ; encoding: [0x12,0xc3]
+  clrn          ; CHECK: bic    #4, r2 ; encoding: [0x22,0xc2]
+  clrz          ; CHECK: bic    #2, r2 ; encoding: [0x22,0xc3]
 ;  pop    r7     ; mov  @sp+, r7
-;  setc          ; bis  #1, sr
-;  setn          ; bis  #4, sr
-;  setz          ; bis  #2, sr
-;  tst    r7     ; cmp  #0, r7
+  setc          ; CHECK: bis    #1, r2 ; encoding: [0x12,0xd3]
+  setn          ; CHECK: bis    #4, r2 ; encoding: [0x22,0xd2]
+  setz          ; CHECK: bis    #2, r2 ; encoding: [0x22,0xd3]
+  tst    r7     ; CHECK: cmp    #0, r7 ; encoding: [0x07,0x93]
 

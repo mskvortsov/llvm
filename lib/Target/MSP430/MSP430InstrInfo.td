@@ -111,9 +111,16 @@ def CGImmAsmOperand : AsmOperandClass {
   let RenderMethod = "addImmOperands";
 }
 
-def cgimm : Operand<i16>,
-            ImmLeaf<i16, [{return Imm == 0 || Imm == 1 || Imm == 2 ||
+def cg8imm : Operand<i8>,
+             ImmLeaf<i8, [{return Imm == 0 || Imm == 1 || Imm == 2 ||
                                   Imm == 4 || Imm == 8 || Imm == -1}]> {
+  let ParserMatchClass = CGImmAsmOperand;
+  let EncoderMethod = "getCGImmOpValue";
+}
+
+def cg16imm : Operand<i16>,
+              ImmLeaf<i16, [{return Imm == 0 || Imm == 1 || Imm == 2 ||
+                                    Imm == 4 || Imm == 8 || Imm == -1}]> {
   let ParserMatchClass = CGImmAsmOperand;
   let EncoderMethod = "getCGImmOpValue";
 }
@@ -275,7 +282,7 @@ def POP16r   : IForm16<0b0100, DstReg, SrcPostInc, 2,
 let mayStore = 1 in
 def PUSH8r :  II8r<0b100, (outs), (ins GR8:$src), "push.b\t$src", []>;
 def PUSH16r : II16r<0b100, (outs), (ins GR16:$src), "push\t$src", []>;
-def PUSH16c : II16c<0b100, (outs), (ins cgimm:$imm), "push\t$imm", []>;
+def PUSH16c : II16c<0b100, (outs), (ins cg16imm:$imm), "push\t$imm", []>;
 def PUSH16i : II16i<0b100, (outs), (ins i16imm:$src), "push\t$src", []>;
 }
 
@@ -297,7 +304,7 @@ def MOV16rr : I16rr<0b0100,
 // FIXME: Provide proper encoding!
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
 def MOV16rc : I16rc<0b0100,
-                    (outs GR16:$dst), (ins cgimm:$imm),
+                    (outs GR16:$dst), (ins cg16imm:$imm),
                     "mov $imm, $dst",
                     [(set GR16:$dst, imm:$imm)]>;
 def MOV8ri  : I8ri<0b0100,
@@ -333,12 +340,12 @@ def MOVZX16rm8 : I8rm<0b0100,
 }
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$src = $wb" in {
-def MOV8rp  : IForm8<0b0100, DstReg, SrcPostInc, 2,
-                     (outs GR8:$dst, GR16:$wb), (ins GR16:$src),
-                     "mov.b\t{@$src+, $dst}", []>;
-def MOV16rp : IForm16<0b0100, DstReg, SrcPostInc, 2,
-                      (outs GR16:$dst, GR16:$wb), (ins GR16:$src),
-                      "mov\t{@$src+, $dst}", []>;
+def MOV8rp  : I8rp<0b0100,
+                   (outs GR8:$dst, GR16:$wb), (ins GR16:$src),
+                   "mov.b\t{@$src+, $dst}", []>;
+def MOV16rp : I16rp<0b0100,
+                    (outs GR16:$dst, GR16:$wb), (ins GR16:$src),
+                    "mov\t{@$src+, $dst}", []>;
 }
 
 // Any instruction that defines a 8-bit result leaves the high half of the
@@ -411,13 +418,19 @@ multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
   let mayLoad = 1,
       hasExtraDefRegAllocReq = 1,
       Constraints = "$base = $wb, $src = $dst" in {
-  def 8rp : IForm8<opcode, DstReg, SrcPostInc, 2,
-                     (outs GR8:$dst, GR8:$wb), (ins GR8:$src, GR8:$base),
-                     !strconcat(asmstring, ".b @$base+, $dst"), []>;
-  def 16rp : IForm16<opcode, DstReg, SrcPostInc, 2,
-                     (outs GR16:$dst, GR16:$wb), (ins GR16:$src, GR16:$base),
-                     !strconcat(asmstring, " @$base+, $dst"), []>;
+  def 8rp : I8rp<opcode, (outs GR8:$dst, GR8:$wb), (ins GR8:$src, GR8:$base),
+                 !strconcat(asmstring, ".b @$base+, $dst"), []>;
+  def 16rp : I16rp<opcode, (outs GR16:$dst, GR16:$wb), (ins GR16:$src, GR16:$base),
+                   !strconcat(asmstring, " @$base+, $dst"), []>;
   }
+  def 8rc : I8rc<opcode, (outs GR8:$dst), (ins GR8:$src2, cg8imm:$imm),
+                 !strconcat(asmstring, ".b $imm, $dst"),
+                 [(set GR8:$dst, (node GR8:$src2, imm:$imm)),
+                  (implicit SR)]>;
+  def 16rc : I16rc<opcode, (outs GR16:$dst), (ins GR16:$src2, cg16imm:$imm),
+                 !strconcat(asmstring, " $imm, $dst"),
+                 [(set GR16:$dst, (node GR16:$src2, imm:$imm)),
+                  (implicit SR)]>;
   def 8ri : I8ri<opcode, (outs GR8:$dst), (ins GR8:$src2, i8imm:$src),
                  !strconcat(asmstring, ".b $src, $dst"),
                  [(set GR8:$dst, (node GR8:$src2, imm:$src)),
@@ -434,6 +447,14 @@ multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
   def 16mr : I16mr<opcode, (outs), (ins memdst:$dst, GR16:$src),
                    !strconcat(asmstring, " $src, $dst"),
                    [(store (node (load addr:$dst), GR16:$src), addr:$dst),
+                    (implicit SR)]>;
+  def 8mc : I8mc<opcode, (outs), (ins memdst:$dst, cg8imm:$imm),
+                 !strconcat(asmstring, ".b $imm, $dst"),
+                 [(store (node (load addr:$dst), (i8 imm:$imm)), addr:$dst),
+                  (implicit SR)]>;
+  def 16mc : I16mc<opcode, (outs), (ins memdst:$dst, cg16imm:$imm),
+                   !strconcat(asmstring, " $imm, $dst"),
+                   [(store (node (load addr:$dst), (i16 imm:$imm)), addr:$dst),
                     (implicit SR)]>;
   def 8mi : I8mi<opcode, (outs), (ins memdst:$dst, i8imm:$src),
                  !strconcat(asmstring, ".b $src, $dst"),

@@ -477,14 +477,14 @@ multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
   }
 }
 
-defm ADD : Arith<0b0101, "add",  add,  1, []>;
-defm ADC : Arith<0b0110, "addc", adde, 1, [SR]>;
-defm AND : Arith<0b1111, "and",  and,  1, []>;
-defm OR  : Arith<0b1101, "bis",  or,   1, []>;
-defm BIC : Arith<0b1100, "bic",  bic,  0, []>;
-defm XOR : Arith<0b1110, "xor",  xor,  1, []>;
-defm SUB : Arith<0b1000, "sub",  sub,  0, []>;
-defm SBC : Arith<0b0111, "subc", sube, 0, [SR]>;
+defm ADD  : Arith<0b0101, "add",  add,  1, []>;
+defm ADDC : Arith<0b0110, "addc", adde, 1, [SR]>;
+defm AND  : Arith<0b1111, "and",  and,  1, []>;
+defm BIS  : Arith<0b1101, "bis",  or,   1, []>;
+defm BIC  : Arith<0b1100, "bic",  bic,  0, []>;
+defm XOR  : Arith<0b1110, "xor",  xor,  1, []>;
+defm SUB  : Arith<0b1000, "sub",  sub,  0, []>;
+defm SUBC : Arith<0b0111, "subc", sube, 0, [SR]>;
 defm DADD : Arith<0b1010, "dadd", MSP430dadd, 1, [SR]>;
 
 let Constraints = "$src = $dst" in {

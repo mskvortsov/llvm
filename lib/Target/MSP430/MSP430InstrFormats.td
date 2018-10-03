@@ -108,6 +108,22 @@ class I16ri<bits<4> opcode,
   let Inst{31-16} = src{19-4};
 }
 
+class I16rc<bits<4> opcode,
+            dag outs, dag ins, string asmstr, list<dag> pattern>
+  : MSP430Inst<outs, ins, 2, asmstr> {
+  let Pattern = pattern;
+
+  bits<6> imm;
+  bits<4> dst;
+
+  let Inst{15-12} = opcode;
+  let Inst{11-8}  = imm{3-0};
+  let Inst{7}     = DstReg.Value;
+  let Inst{6}     = 0;
+  let Inst{5-4}   = imm{5-4};
+  let Inst{3-0}   = dst;
+}
+
 class I16rm<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm16<opcode, DstReg, SrcMem, 4, outs, ins, asmstr, pattern> {
@@ -176,7 +192,22 @@ class II16m<bits<3> opcode,
 
 class II16i<bits<3> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IIForm16<opcode, SrcImm, 4, outs, ins, asmstr, pattern>;
+  : IIForm16<opcode, SrcImm, 4, outs, ins, asmstr, pattern> {
+  let Inst{31-16} = src{19-4};
+}
+
+class II16c<bits<3> opcode,
+            dag outs, dag ins, string asmstr, list<dag> pattern>
+  : MSP430Inst<outs, ins, 2, asmstr> {
+  let Pattern = pattern;
+
+  bits<6> imm;
+
+  let Inst{15-10} = 0b000100;
+  let Inst{9-7}   = opcode;
+  let Inst{6}     = 0;
+  let Inst{5-0}   = imm;
+}
 
 // MSP430 Conditional Jumps Instructions
 class CJForm<dag outs, dag ins, string asmstr, list<dag> pattern>

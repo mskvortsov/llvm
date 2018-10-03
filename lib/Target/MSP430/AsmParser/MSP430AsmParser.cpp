@@ -158,6 +158,20 @@ public:
   bool isToken() const { return Kind == k_Token; }
   bool isMem() const { return Kind == k_Memory; }
 
+  bool isCGImm() const {
+    if (Kind != k_Immediate)
+      return false;
+
+    int64_t Imm;
+    if (!getImm()->evaluateAsAbsolute(Imm))
+      return false;
+    
+    if (Imm == 0 || Imm == 1 || Imm == 2 || Imm == 4 || Imm == 8 || Imm == -1)
+      return true;
+
+    return false;
+  }
+
   StringRef getToken() const {
     assert(Kind == k_Token && "Invalid access!");
     return Tok;

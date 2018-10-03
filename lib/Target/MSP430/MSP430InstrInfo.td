@@ -106,6 +106,18 @@ def cc : Operand<i8> {
   let EncoderMethod = "getCCValue";
 }
 
+def CGImmAsmOperand : AsmOperandClass {
+  let Name = "CGImm";
+  let RenderMethod = "addImmOperands";
+}
+
+def cgimm : Operand<i16>,
+            ImmLeaf<i16, [{return Imm == 0 || Imm == 1 || Imm == 2 ||
+                                  Imm == 4 || Imm == 8 || Imm == -1}]> {
+  let ParserMatchClass = CGImmAsmOperand;
+  let EncoderMethod = "getCGImmOpValue";
+}
+
 //===----------------------------------------------------------------------===//
 // MSP430 Complex Pattern Definitions.
 //===----------------------------------------------------------------------===//
@@ -263,6 +275,8 @@ def POP16r   : IForm16<0b0100, DstReg, SrcPostInc, 2,
 let mayStore = 1 in
 def PUSH8r :  II8r<0b100, (outs), (ins GR8:$src), "push.b\t$src", []>;
 def PUSH16r : II16r<0b100, (outs), (ins GR16:$src), "push\t$src", []>;
+def PUSH16c : II16c<0b100, (outs), (ins cgimm:$imm), "push\t$imm", []>;
+def PUSH16i : II16i<0b100, (outs), (ins i16imm:$src), "push\t$src", []>;
 }
 
 //===----------------------------------------------------------------------===//
@@ -282,6 +296,10 @@ def MOV16rr : I16rr<0b0100,
 
 // FIXME: Provide proper encoding!
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
+def MOV16rc : I16rc<0b0100,
+                    (outs GR16:$dst), (ins cgimm:$imm),
+                    "mov $imm, $dst",
+                    [(set GR16:$dst, imm:$imm)]>;
 def MOV8ri  : I8ri<0b0100,
                    (outs GR8:$dst), (ins i8imm:$src),
                    "mov.b\t{$src, $dst}",

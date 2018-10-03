@@ -71,6 +71,10 @@ public:
                             SmallVectorImpl<MCFixup> &Fixups,
                             const MCSubtargetInfo &STI) const;
 
+  unsigned getCGImmOpValue(const MCInst &MI, unsigned Op,
+                           SmallVectorImpl<MCFixup> &Fixups,
+                           const MCSubtargetInfo &STI) const;
+
   unsigned getCCValue(const MCInst &MI, unsigned Op,
                       SmallVectorImpl<MCFixup> &Fixups,
                       const MCSubtargetInfo &STI) const;
@@ -154,6 +158,25 @@ unsigned MSP430MCCodeEmitter::getPCRelImmValue(const MCInst &MI, unsigned Op,
   Fixups.push_back(MCFixup::create(0, MO.getExpr(),
     static_cast<MCFixupKind>(MSP430::fixup_10_pcrel), MI.getLoc()));
   return 0;
+}
+
+unsigned MSP430MCCodeEmitter::getCGImmOpValue(const MCInst &MI, unsigned Op,
+                                              SmallVectorImpl<MCFixup> &Fixups,
+                                              const MCSubtargetInfo &STI) const {
+  const MCOperand &MO = MI.getOperand(Op);
+  assert(MO.isImm() && "Expr operand expected");
+  
+  int64_t Imm = MO.getImm();
+  switch (Imm) {
+  default:
+    llvm_unreachable("Invalid immediate value");
+  case 4:  return 0x22;
+  case 8:  return 0x32;
+  case 0:  return 0x03;
+  case 1:  return 0x13;
+  case 2:  return 0x23;
+  case -1: return 0x33;
+  }
 }
 
 unsigned MSP430MCCodeEmitter::getCCValue(const MCInst &MI, unsigned Op,

@@ -31,6 +31,11 @@ foo:
 ; CHECK:                                        ;   fixup A - offset: 2, value: disp, kind: fixup_16_pcrel_byte
 ; CHECK:                                        ;   fixup B - offset: 4, value: disp+2, kind: fixup_16_pcrel_byte
 
+  mov #42, &disp
+
+; CHECK:        mov     #42, &disp              ; encoding: [0xb2,0x40,0x2a,0x00,A,A]
+; CHECK:                                        ;   fixup A - offset: 4, value: disp, kind: fixup_16
+
 disp:
   .word 0xcafe
   .word 0xbabe

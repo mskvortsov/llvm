@@ -38,6 +38,7 @@ class MSP430MCCodeEmitter : public MCCodeEmitter {
   void operator=(const MSP430MCCodeEmitter &) = delete;
   MCContext &Ctx;
   MCInstrInfo const &MCII;
+  mutable unsigned Offset;
 
 public:
   MSP430MCCodeEmitter(MCContext &ctx, MCInstrInfo const &MCII)
@@ -87,6 +88,9 @@ void MSP430MCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
   // Get byte count of instruction.
   unsigned Size = Desc.getSize();
 
+  // Initialize fixup offset
+  Offset = 2;
+
   uint64_t BinaryOpCode = getBinaryCodeForInstr(MI, Fixups, STI);
   const uint16_t *Words = reinterpret_cast<uint16_t const *>(&BinaryOpCode);
   size_t WordCount = Size / 2;
@@ -104,12 +108,15 @@ unsigned MSP430MCCodeEmitter::getMachineOpValue(const MCInst &MI,
   if (MO.isReg())
     return Ctx.getRegisterInfo()->getEncodingValue(MO.getReg());
 
-  if (MO.isImm())
+  if (MO.isImm()) {
+    Offset += 2;
     return MO.getImm() << 4;
+  }
 
   if (MO.isExpr()) {
-    Fixups.push_back(MCFixup::create(2, MO.getExpr(),
+    Fixups.push_back(MCFixup::create(Offset, MO.getExpr(),
       static_cast<MCFixupKind>(MSP430::fixup_16_byte), MI.getLoc()));
+    Offset += 2;
     return 0;
   }
 
@@ -142,11 +149,9 @@ unsigned MSP430MCCodeEmitter::getMemOperandValue(const MCInst &MI,
     FixupKind = MSP430::fixup_16_byte;
     break;
   }
-  unsigned Offset = 2;
-  if ((MI.getNumOperands() == 4) && (Op == 0))
-    Offset = 4;
   Fixups.push_back(MCFixup::create(Offset, MO2.getExpr(),
     static_cast<MCFixupKind>(FixupKind), MI.getLoc()));
+  Offset += 2;
   return Reg;
 }
 

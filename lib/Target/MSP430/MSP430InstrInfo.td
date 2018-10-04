@@ -113,14 +113,14 @@ def CGImmAsmOperand : AsmOperandClass {
 
 def cg8imm : Operand<i8>,
              ImmLeaf<i8, [{return Imm == 0 || Imm == 1 || Imm == 2 ||
-                                  Imm == 4 || Imm == 8 || Imm == -1}]> {
+                                  Imm == 4 || Imm == 8 || Imm == -1;}]> {
   let ParserMatchClass = CGImmAsmOperand;
   let EncoderMethod = "getCGImmOpValue";
 }
 
 def cg16imm : Operand<i16>,
               ImmLeaf<i16, [{return Imm == 0 || Imm == 1 || Imm == 2 ||
-                                    Imm == 4 || Imm == 8 || Imm == -1}]> {
+                                    Imm == 4 || Imm == 8 || Imm == -1;}]> {
   let ParserMatchClass = CGImmAsmOperand;
   let EncoderMethod = "getCGImmOpValue";
 }
@@ -306,11 +306,11 @@ let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
 def MOV8rc : I16rc<0b0100,
                    (outs GR8:$dst), (ins cg8imm:$imm),
                    "mov.b $imm, $dst",
-                   [(set GR8:$dst, imm:$imm)]>;
+                   [(set GR8:$dst, cg8imm:$imm)]>;
 def MOV16rc : I16rc<0b0100,
                     (outs GR16:$dst), (ins cg16imm:$imm),
                     "mov $imm, $dst",
-                    [(set GR16:$dst, imm:$imm)]>;
+                    [(set GR16:$dst, cg16imm:$imm)]>;
 def MOV8ri  : I8ri<0b0100,
                    (outs GR8:$dst), (ins i8imm:$src),
                    "mov.b\t{$src, $dst}",
@@ -370,11 +370,11 @@ def : Pat<(i16 (zext def8:$src)),
 def MOV8mc  : I8mc<0b0100,
                    (outs), (ins memdst:$dst, cg8imm:$imm),
                    "mov.b\t{$imm, $dst}",
-                   [(store (i8 imm:$imm), addr:$dst)]>;
+                   [(store (i8 cg8imm:$imm), addr:$dst)]>;
 def MOV16mc : I16mc<0b0100,
                     (outs), (ins memdst:$dst, cg16imm:$imm),
                     "mov\t{$imm, $dst}",
-                    [(store (i16 imm:$imm), addr:$dst)]>;
+                    [(store (i16 cg16imm:$imm), addr:$dst)]>;
 
 def MOV8mi  : I8mi<0b0100,
                    (outs), (ins memdst:$dst, i8imm:$src),
@@ -438,11 +438,11 @@ multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
   }
   def 8rc : I8rc<opcode, (outs GR8:$dst), (ins GR8:$src2, cg8imm:$imm),
                  !strconcat(asmstring, ".b $imm, $dst"),
-                 [(set GR8:$dst, (node GR8:$src2, imm:$imm)),
+                 [(set GR8:$dst, (node GR8:$src2, cg8imm:$imm)),
                   (implicit SR)]>;
   def 16rc : I16rc<opcode, (outs GR16:$dst), (ins GR16:$src2, cg16imm:$imm),
                  !strconcat(asmstring, " $imm, $dst"),
-                 [(set GR16:$dst, (node GR16:$src2, imm:$imm)),
+                 [(set GR16:$dst, (node GR16:$src2, cg16imm:$imm)),
                   (implicit SR)]>;
   def 8ri : I8ri<opcode, (outs GR8:$dst), (ins GR8:$src2, i8imm:$src),
                  !strconcat(asmstring, ".b $src, $dst"),
@@ -463,11 +463,11 @@ multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
                     (implicit SR)]>;
   def 8mc : I8mc<opcode, (outs), (ins memdst:$dst, cg8imm:$imm),
                  !strconcat(asmstring, ".b $imm, $dst"),
-                 [(store (node (load addr:$dst), (i8 imm:$imm)), addr:$dst),
+                 [(store (node (load addr:$dst), (i8 cg8imm:$imm)), addr:$dst),
                   (implicit SR)]>;
   def 16mc : I16mc<opcode, (outs), (ins memdst:$dst, cg16imm:$imm),
                    !strconcat(asmstring, " $imm, $dst"),
-                   [(store (node (load addr:$dst), (i16 imm:$imm)), addr:$dst),
+                   [(store (node (load addr:$dst), (i16 cg16imm:$imm)), addr:$dst),
                     (implicit SR)]>;
   def 8mi : I8mi<opcode, (outs), (ins memdst:$dst, i8imm:$src),
                  !strconcat(asmstring, ".b $src, $dst"),
@@ -657,11 +657,11 @@ def CMP16rr : I16rr<0b1001,
 def CMP8rc  : I8rc<0b1001,
                    (outs), (ins GR8:$dst, cg8imm:$imm),
                    "cmp.b $imm, $dst",
-                   [(MSP430cmp GR8:$dst, imm:$imm), (implicit SR)]>;
+                   [(MSP430cmp GR8:$dst, cg8imm:$imm), (implicit SR)]>;
 def CMP16rc : I16rc<0b1001,
                     (outs), (ins GR16:$dst, cg16imm:$imm),
                     "cmp $imm, $dst",
-                    [(MSP430cmp GR16:$dst, imm:$imm), (implicit SR)]>;
+                    [(MSP430cmp GR16:$dst, cg16imm:$imm), (implicit SR)]>;
 
 def CMP8ri  : I8ri<0b1001,
                    (outs), (ins GR8:$dst, i8imm:$src),
@@ -675,12 +675,12 @@ def CMP16ri : I16ri<0b1001,
 def CMP8mc  : I8mc<0b1001,
                    (outs), (ins memsrc:$dst, cg8imm:$imm),
                    "cmp.b $imm, $dst",
-                   [(MSP430cmp (load addr:$dst), (i8 imm:$imm)),
+                   [(MSP430cmp (load addr:$dst), (i8 cg8imm:$imm)),
                     (implicit SR)]>;
 def CMP16mc : I16mc<0b1001,
                     (outs), (ins memsrc:$dst, cg16imm:$imm),
                     "cmp $imm, $dst",
-                    [(MSP430cmp (load addr:$dst), (i16 imm:$imm)),
+                    [(MSP430cmp (load addr:$dst), (i16 cg16imm:$imm)),
                      (implicit SR)]>;
 
 def CMP8mi  : I8mi<0b1001,

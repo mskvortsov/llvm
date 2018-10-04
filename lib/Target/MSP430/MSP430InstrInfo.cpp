@@ -314,9 +314,6 @@ unsigned MSP430InstrInfo::getInstSizeInBytes(const MachineInstr &MI) const {
     return TII.getInlineAsmLength(MI.getOperand(0).getSymbolName(),
                                   *MF->getTarget().getMCAsmInfo());
   }
-  case MSP430::SAR8r1c:
-  case MSP430::SAR16r1c:
-    return 4;
   }
 
   return Desc.getSize();

@@ -34,8 +34,6 @@ def SDT_MSP430BrCC         : SDTypeProfile<0, 2, [SDTCisVT<0, OtherVT>,
 def SDT_MSP430SelectCC     : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
                                                   SDTCisSameAs<1, 2>, 
                                                   SDTCisVT<3, i8>]>;
-def SDT_MSP430Shift        : SDTypeProfile<1, 2, [SDTCisSameAs<0, 1>,
-                                                  SDTCisI8<2>]>;
 def SDT_MSP430DAdd         : SDTypeProfile<1, 2, [SDTCisSameAs<0, 1>,
                                                   SDTCisSameAs<0, 2>,
                                                   SDTCisInt<0>]>;
@@ -50,7 +48,8 @@ def MSP430retiflag : SDNode<"MSP430ISD::RETI_FLAG", SDTNone,
 
 def MSP430rra     : SDNode<"MSP430ISD::RRA", SDTIntUnaryOp, []>;
 def MSP430rla     : SDNode<"MSP430ISD::RLA", SDTIntUnaryOp, []>;
-def MSP430rrc     : SDNode<"MSP430ISD::RRC", SDTIntUnaryOp, []>;
+def MSP430rrc     : SDNode<"MSP430ISD::RRC", SDTIntUnaryOp, [SDNPInGlue]>;
+def MSP430clrc    : SDNode<"MSP430ISD::CLRC", SDTNone, [SDNPOutGlue]>;
 
 def MSP430call    : SDNode<"MSP430ISD::CALL", SDT_MSP430Call,
                      [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue, SDNPVariadic]>;
@@ -66,9 +65,6 @@ def MSP430brcc    : SDNode<"MSP430ISD::BR_CC", SDT_MSP430BrCC,
                             [SDNPHasChain, SDNPInGlue]>;
 def MSP430selectcc: SDNode<"MSP430ISD::SELECT_CC", SDT_MSP430SelectCC,
                             [SDNPInGlue]>;
-def MSP430shl     : SDNode<"MSP430ISD::SHL", SDT_MSP430Shift, []>;
-def MSP430sra     : SDNode<"MSP430ISD::SRA", SDT_MSP430Shift, []>;
-def MSP430srl     : SDNode<"MSP430ISD::SRL", SDT_MSP430Shift, []>;
 def MSP430dadd    : SDNode<"MSP430ISD::DADD", SDT_MSP430DAdd, []>;
 
 //===----------------------------------------------------------------------===//
@@ -175,23 +171,22 @@ let isCodeGenOnly = 1, usesCustomInserter = 1 in {
   let Defs = [SR] in {
   def Shl8     : Pseudo<(outs GR8:$dst), (ins GR8:$src, GR8:$cnt),
                         "# Shl8 PSEUDO",
-                        [(set GR8:$dst, (MSP430shl GR8:$src, GR8:$cnt))]>;
+                        [(set GR8:$dst, (shl GR8:$src, GR8:$cnt))]>;
   def Shl16    : Pseudo<(outs GR16:$dst), (ins GR16:$src, GR8:$cnt),
                         "# Shl16 PSEUDO",
-                        [(set GR16:$dst, (MSP430shl GR16:$src, GR8:$cnt))]>;
+                        [(set GR16:$dst, (shl GR16:$src, GR8:$cnt))]>;
   def Sra8     : Pseudo<(outs GR8:$dst), (ins GR8:$src, GR8:$cnt),
                         "# Sra8 PSEUDO",
-                        [(set GR8:$dst, (MSP430sra GR8:$src, GR8:$cnt))]>;
+                        [(set GR8:$dst, (sra GR8:$src, GR8:$cnt))]>;
   def Sra16    : Pseudo<(outs GR16:$dst), (ins GR16:$src, GR8:$cnt),
                         "# Sra16 PSEUDO",
-                        [(set GR16:$dst, (MSP430sra GR16:$src, GR8:$cnt))]>;
+                        [(set GR16:$dst, (sra GR16:$src, GR8:$cnt))]>;
   def Srl8     : Pseudo<(outs GR8:$dst), (ins GR8:$src, GR8:$cnt),
                         "# Srl8 PSEUDO",
-                        [(set GR8:$dst, (MSP430srl GR8:$src, GR8:$cnt))]>;
+                        [(set GR8:$dst, (srl GR8:$src, GR8:$cnt))]>;
   def Srl16    : Pseudo<(outs GR16:$dst), (ins GR16:$src, GR8:$cnt),
                         "# Srl16 PSEUDO",
-                        [(set GR16:$dst, (MSP430srl GR16:$src, GR8:$cnt))]>;
-
+                        [(set GR16:$dst, (srl GR16:$src, GR8:$cnt))]>;
   }
 }
 
@@ -567,6 +562,16 @@ def SETZ : InstAlias<"setz", (BIS16rc SR, 2)>;
 
 // TODO pop?
 
+def Hack : I16rc<0b1100, (outs), (ins), "clrc", [(MSP430clrc)]> {
+  let imm = 0b010011;
+  let dst = 2;
+  let Defs = [SR];
+  let isCodeGenOnly = 1;
+}
+
+// The following pattern doesn't work: TwoAddressInstructionPass fails.
+//def : Pat<(MSP430clrc), (BIC16rc SR, 1)>;
+
 let Constraints = "$src = $dst" in {
 
 let Defs = [SR] in {
@@ -593,19 +598,6 @@ def SHL16r1 : I16rr<0b0101,
                     "rla\t$dst",
                     [(set GR16:$dst, (MSP430rla GR16:$src)),
                      (implicit SR)]>;
-
-let isCodeGenOnly = 1 in {
-def SAR8r1c  : Pseudo<(outs GR8:$dst), (ins GR8:$src),
-                      "clrc\n\t"
-                      "rrc.b\t$dst",
-                      [(set GR8:$dst, (MSP430rrc GR8:$src)),
-                       (implicit SR)]>;
-def SAR16r1c : Pseudo<(outs GR16:$dst), (ins GR16:$src),
-                      "clrc\n\t"
-                      "rrc\t$dst",
-                      [(set GR16:$dst, (MSP430rrc GR16:$src)),
-                       (implicit SR)]>;
-}
 
 def RRC8r :   II8r<0b000,
                    (outs GR8:$dst), (ins GR8:$src),

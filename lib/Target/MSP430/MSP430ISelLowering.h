@@ -36,6 +36,9 @@ namespace llvm {
       /// Y = RRC X, rotate right via carry
       RRC,
 
+      /// Clear carry flag
+      CLRC,
+
       /// CALL - These operations represent an abstract call
       /// instruction, which includes a bunch of information.
       CALL,
@@ -60,9 +63,6 @@ namespace llvm {
       /// SELECT_CC - Operand 0 and operand 1 are selection variable, operand 3
       /// is condition code and operand 4 is flag operand.
       SELECT_CC,
-
-      /// SHL, SRA, SRL - Non-constant shifts.
-      SHL, SRA, SRL,
 
       /// DADD - Decimal addition with carry
       DADD,

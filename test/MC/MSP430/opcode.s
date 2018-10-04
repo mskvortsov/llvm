@@ -80,24 +80,23 @@ foo:
 
   ;; Emulated logical instructions
   inv    r7     ; CHECK: xor   #-1, r7 ; encoding: [0x37,0xe3]
-;  rla    r7     ; HECK: add    r7, r7 ; encoding: [0x07,0x57]
+  rla    r7     ; CHECK: rla    r7     ; encoding: [0x07,0x57]
   rlc    r7     ; CHECK: addc   r7, r7 ; encoding: [0x07,0x67]
 
   ;; Emulated program flow control instructions
-;  br     r7     ; mov  r7, pc
+  br     r7     ; CHECK: br     r7     ; encoding: [0x00,0x47]
   dint          ; CHECK: bic    #8, r2 ; encoding: [0x32,0xc2]
   eint          ; CHECK: bis    #8, r2 ; encoding: [0x32,0xd2]
-;  nop           ; mov  #0, r3
-;  ret           ; mov  @sp+, pc
+  nop           ; CHECK: mov    #0, r3 ; encoding: [0x03,0x43]
+  ret           ; CHECK: ret           ; encoding: [0x30,0x41]
 
   ;; Emulated data instruction
   clr    r7     ; CHECK: mov    #0, r7 ; encoding: [0x07,0x43]
   clrc          ; CHECK: bic    #1, r2 ; encoding: [0x12,0xc3]
   clrn          ; CHECK: bic    #4, r2 ; encoding: [0x22,0xc2]
   clrz          ; CHECK: bic    #2, r2 ; encoding: [0x22,0xc3]
-;  pop    r7     ; mov  @sp+, r7
+  pop    r7     ; CHECK: pop    r7     ; encoding: [0x37,0x41]
   setc          ; CHECK: bis    #1, r2 ; encoding: [0x12,0xd3]
   setn          ; CHECK: bis    #4, r2 ; encoding: [0x22,0xd2]
   setz          ; CHECK: bis    #2, r2 ; encoding: [0x22,0xd3]
   tst    r7     ; CHECK: cmp    #0, r7 ; encoding: [0x07,0x93]
-

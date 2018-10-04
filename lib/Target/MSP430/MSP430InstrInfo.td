@@ -195,9 +195,6 @@ let isCodeGenOnly = 1, usesCustomInserter = 1 in {
   }
 }
 
-let hasSideEffects = 0 in
-def NOP : Pseudo<(outs), (ins), "nop", []>;
-
 //===----------------------------------------------------------------------===//
 //  Control Flow Instructions...
 //
@@ -227,17 +224,17 @@ let isBarrier = 1 in {
                    [(br bb:$dst)]> {
     let cond = 0b111;
   }
-  let isIndirectBranch = 1 in {
+  let isIndirectBranch = 1, dst = 0 in {
     // Long branches
-    def Bi  : I16ri<0b0100, (outs), (ins i16imm:$dst),
-                    "br\t$dst",
-                    [(brind tblockaddress:$dst)]>;
-    def Br  : I16rr<0b0100, (outs), (ins GR16:$dst),
-                    "br\t$dst",
-                    [(brind GR16:$dst)]>;
-    def Bm  : I16rm<0b0100, (outs), (ins memsrc:$dst),
-                    "br\t$dst",
-                    [(brind (load addr:$dst))]>;
+    def Bi  : I16ri<0b0100, (outs), (ins i16imm:$src),
+                    "br\t$src",
+                    [(brind tblockaddress:$src)]>;
+    def Br  : I16rr<0b0100, (outs), (ins GR16:$src),
+                    "br\t$src",
+                    [(brind GR16:$src)]>;
+    def Bm  : I16rm<0b0100, (outs), (ins memsrc:$src),
+                    "br\t$src",
+                    [(brind (load addr:$src))]>;
   }
 }
 
@@ -552,7 +549,8 @@ def RLC16m  : InstAlias<"rlc $dst",    (ADDC16mm  memdst:$dst,  memdst:$dst)>;
 def DINT : InstAlias<"dint", (BIC16rc SR, 8)>;
 def EINT : InstAlias<"eint", (BIS16rc SR, 8)>;
 
-// TODO nop?
+def NOP  : InstAlias<"nop",  (MOV16rc CG, 0)>;
+
 // TODO ret?
 
 def CLR8r   : InstAlias<"clr.b $dst",  (MOV8rc    GR8:$dst,     0)>;
@@ -585,12 +583,12 @@ def SAR16r1 : II16r<0b010,
                     [(set GR16:$dst, (MSP430rra GR16:$src)),
                      (implicit SR)]>;
 
-def SHL8r1  : I8rr<0,
+def SHL8r1  : I8rr<0b0101,
                    (outs GR8:$dst), (ins GR8:$src),
                    "rla.b\t$dst",
                    [(set GR8:$dst, (MSP430rla GR8:$src)),
                     (implicit SR)]>;
-def SHL16r1 : I16rr<0,
+def SHL16r1 : I16rr<0b0101,
                     (outs GR16:$dst), (ins GR16:$src),
                     "rla\t$dst",
                     [(set GR16:$dst, (MSP430rla GR16:$src)),

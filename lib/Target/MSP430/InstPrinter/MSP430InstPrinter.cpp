@@ -88,6 +88,18 @@ void MSP430InstPrinter::printSrcMemOperand(const MCInst *MI, unsigned OpNo,
     O << '(' << getRegisterName(Base.getReg()) << ')';
 }
 
+void MSP430InstPrinter::printIndRegOperand(const MCInst *MI, unsigned OpNo,
+                                           raw_ostream &O) {
+  const MCOperand &Base = MI->getOperand(OpNo);
+  O << "@" << getRegisterName(Base.getReg());
+}
+
+void MSP430InstPrinter::printPostIndRegOperand(const MCInst *MI, unsigned OpNo,
+                                               raw_ostream &O) {
+  const MCOperand &Base = MI->getOperand(OpNo);
+  O << "@" << getRegisterName(Base.getReg()) << "+";
+}
+
 void MSP430InstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,
                                        raw_ostream &O) {
   unsigned CC = MI->getOperand(OpNo).getImm();

@@ -113,15 +113,11 @@ unsigned MSP430MCCodeEmitter::getMachineOpValue(const MCInst &MI,
     return MO.getImm() << 4;
   }
 
-  if (MO.isExpr()) {
-    Fixups.push_back(MCFixup::create(Offset, MO.getExpr(),
+  assert(MO.isExpr() && "Expected expr operand");
+  Fixups.push_back(MCFixup::create(Offset, MO.getExpr(),
       static_cast<MCFixupKind>(MSP430::fixup_16_byte), MI.getLoc()));
-    Offset += 2;
-    return 0;
-  }
-
-  dbgs() << MO << "\n";
-  assert(0 && "NYI");
+  Offset += 2;
+  return 0;
 }
 
 unsigned MSP430MCCodeEmitter::getMemOperandValue(const MCInst &MI,

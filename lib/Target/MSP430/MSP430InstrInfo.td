@@ -90,6 +90,28 @@ def memdst : Operand<i16> {
   let EncoderMethod = "getMemOperandValue";
 }
 
+def IndRegAsmOperand : AsmOperandClass {
+  let Name = "IndReg";
+  let RenderMethod = "addRegOperands";
+}
+
+def indreg : Operand<i16> {
+  let PrintMethod = "printIndRegOperand";
+  let MIOperandInfo = (ops GR16);
+  let ParserMatchClass = IndRegAsmOperand;
+}
+
+def PostIndRegAsmOperand : AsmOperandClass {
+  let Name = "PostIndReg";
+  let RenderMethod = "addRegOperands";
+}
+
+def postreg : Operand<i16> {
+  let PrintMethod = "printPostIndRegOperand";
+  let MIOperandInfo = (ops GR16);
+  let ParserMatchClass = PostIndRegAsmOperand;
+}
+
 // Short jump targets have OtherVT type and are printed as pcrel imm values.
 def jmptarget : Operand<OtherVT> {
   let PrintMethod = "printPCRelImmOperand";
@@ -322,6 +344,14 @@ def MOV16rm : I16rm<0b0100,
                     (outs GR16:$dst), (ins memsrc:$src),
                     "mov\t{$src, $dst}",
                     [(set GR16:$dst, (load addr:$src))]>;
+def MOV8rn  : I8rn<0b0100,
+                   (outs GR8:$dst), (ins indreg:$src),
+                   "mov.b\t{$src, $dst}",
+                   [(set GR8:$dst, (load addr:$src))]>;
+def MOV16rn : I16rn<0b0100,
+                    (outs GR16:$dst), (ins indreg:$src),
+                    "mov\t{$src, $dst}",
+                    [(set GR16:$dst, (load addr:$src))]>;
 }
 
 let isCodeGenOnly = 1 in {
@@ -337,11 +367,11 @@ def MOVZX16rm8 : I8rm<0b0100,
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$src = $wb" in {
 def MOV8rp  : I8rp<0b0100,
-                   (outs GR8:$dst, GR16:$wb), (ins GR16:$src),
-                   "mov.b\t{@$src+, $dst}", []>;
+                   (outs GR8:$dst, GR16:$wb), (ins postreg:$src),
+                   "mov.b\t{$src, $dst}", []>;
 def MOV16rp : I16rp<0b0100,
-                    (outs GR16:$dst, GR16:$wb), (ins GR16:$src),
-                    "mov\t{@$src+, $dst}", []>;
+                    (outs GR16:$dst, GR16:$wb), (ins postreg:$src),
+                    "mov\t{$src, $dst}", []>;
 }
 
 // Any instruction that defines a 8-bit result leaves the high half of the
@@ -423,10 +453,10 @@ multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
   let mayLoad = 1,
       hasExtraDefRegAllocReq = 1,
       Constraints = "$base = $wb, $src = $dst" in {
-  def 8rp : I8rp<opcode, (outs GR8:$dst, GR8:$wb), (ins GR8:$src, GR8:$base),
-                 !strconcat(asmstring, ".b @$base+, $dst"), []>;
-  def 16rp : I16rp<opcode, (outs GR16:$dst, GR16:$wb), (ins GR16:$src, GR16:$base),
-                   !strconcat(asmstring, " @$base+, $dst"), []>;
+  def 8rp : I8rp<opcode, (outs GR8:$dst, GR8:$wb), (ins GR8:$src, postreg:$base),
+                 !strconcat(asmstring, ".b $base, $dst"), []>;
+  def 16rp : I16rp<opcode, (outs GR16:$dst, GR16:$wb), (ins GR16:$src, postreg:$base),
+                   !strconcat(asmstring, " $base, $dst"), []>;
   }
   def 8rc : I8rc<opcode, (outs GR8:$dst), (ins GR8:$src2, cg8imm:$imm),
                  !strconcat(asmstring, ".b $imm, $dst"),

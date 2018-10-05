@@ -77,6 +77,7 @@ public:
     MCAsmParserExtension::Initialize(Parser);
     MRI = getContext().getRegisterInfo();
 
+    // TODO
     //setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
   }
 
@@ -90,43 +91,48 @@ private:
   typedef MCParsedAsmOperand Base;
 
   enum KindTy {
-    k_Immediate,
-    k_Register,
-    k_Token,
-    k_Memory
+    k_Imm,
+    k_Reg,
+    k_Tok,
+    k_Mem,
+    k_IndReg,
+    k_PostIndReg
   } Kind;
 
 public:
-  struct RegisterImmediate {
+  struct Memory {
     unsigned Reg;
-    const MCExpr *Imm;
+    const MCExpr *Offset;
   };
   union {
-    StringRef Tok;
-    RegisterImmediate RegImm;
+    const MCExpr *Imm;
+    unsigned      Reg;
+    StringRef     Tok;
+    Memory        Mem;
   };
 
   SMLoc Start, End;
 
 public:
   MSP430Operand(StringRef Tok, SMLoc const &S)
-      : Base(), Kind(k_Token), Tok(Tok), Start(S), End(S) {}
-  MSP430Operand(unsigned Reg, SMLoc const &S, SMLoc const &E)
-      : Base(), Kind(k_Register), RegImm({Reg, nullptr}), Start(S), End(E) {}
+      : Base(), Kind(k_Tok), Tok(Tok), Start(S), End(S) {}
+  MSP430Operand(KindTy Kind, unsigned Reg, SMLoc const &S, SMLoc const &E)
+      : Base(), Kind(Kind), Reg(Reg), Start(S), End(E) {}
   MSP430Operand(MCExpr const *Imm, SMLoc const &S, SMLoc const &E)
-      : Base(), Kind(k_Immediate), RegImm({0, Imm}), Start(S), End(E) {}
-  MSP430Operand(unsigned Reg, MCExpr const *Imm, SMLoc const &S, SMLoc const &E)
-      : Base(), Kind(k_Memory), RegImm({Reg, Imm}), Start(S), End(E) {}
+      : Base(), Kind(k_Imm), Imm(Imm), Start(S), End(E) {}
+  MSP430Operand(unsigned Reg, MCExpr const *Expr, SMLoc const &S, SMLoc const &E)
+      : Base(), Kind(k_Mem), Mem({Reg, Expr}), Start(S), End(E) {}
 
 public:
   void addRegOperands(MCInst &Inst, unsigned N) const {
-    assert(Kind == k_Register && "Unexpected operand kind");
+    assert((Kind == k_Reg || Kind == k_IndReg || Kind == k_PostIndReg) &&
+        "Unexpected operand kind");
     assert(N == 1 && "Invalid number of operands!");
 
-    Inst.addOperand(MCOperand::createReg(getReg()));
+    Inst.addOperand(MCOperand::createReg(Reg));
   }
 
-  void addExpr(MCInst &Inst, const MCExpr *Expr) const {
+  void addExprOperand(MCInst &Inst, const MCExpr *Expr) const {
     // Add as immediate when possible
     if (!Expr)
       Inst.addOperand(MCOperand::createImm(0));
@@ -137,54 +143,49 @@ public:
   }
 
   void addImmOperands(MCInst &Inst, unsigned N) const {
-    assert(Kind == k_Immediate && "Unexpected operand kind");
+    assert(Kind == k_Imm && "Unexpected operand kind");
     assert(N == 1 && "Invalid number of operands!");
 
-    const MCExpr *Expr = getImm();
-    addExpr(Inst, Expr);
+    addExprOperand(Inst, Imm);
   }
 
-  /// Adds the contained reg+imm operand to an instruction.
   void addMemOperands(MCInst &Inst, unsigned N) const {
-    assert(Kind == k_Memory && "Unexpected operand kind");
+    assert(Kind == k_Mem && "Unexpected operand kind");
     assert(N == 2 && "Invalid number of operands");
 
-    Inst.addOperand(MCOperand::createReg(getReg()));
-    addExpr(Inst, getImm());
+    Inst.addOperand(MCOperand::createReg(Mem.Reg));
+    addExprOperand(Inst, Mem.Offset);
   }
 
-  bool isReg() const { return Kind == k_Register; }
-  bool isImm() const { return Kind == k_Immediate; }
-  bool isToken() const { return Kind == k_Token; }
-  bool isMem() const { return Kind == k_Memory; }
+  bool isReg() const        { return Kind == k_Reg; }
+  bool isImm() const        { return Kind == k_Imm; }
+  bool isToken() const      { return Kind == k_Tok; }
+  bool isMem() const        { return Kind == k_Mem; }
+  bool isIndReg() const     { return Kind == k_IndReg; }
+  bool isPostIndReg() const { return Kind == k_PostIndReg; }
 
   bool isCGImm() const {
-    if (Kind != k_Immediate)
+    if (Kind != k_Imm)
       return false;
 
-    int64_t Imm;
-    if (!getImm()->evaluateAsAbsolute(Imm))
+    int64_t Val;
+    if (!Imm->evaluateAsAbsolute(Val))
       return false;
     
-    if (Imm == 0 || Imm == 1 || Imm == 2 || Imm == 4 || Imm == 8 || Imm == -1)
+    if (Val == 0 || Val == 1 || Val == 2 || Val == 4 || Val == 8 || Val == -1)
       return true;
 
     return false;
   }
 
   StringRef getToken() const {
-    assert(Kind == k_Token && "Invalid access!");
+    assert(Kind == k_Tok && "Invalid access!");
     return Tok;
   }
 
   unsigned getReg() const {
-    assert((Kind == k_Register || Kind == k_Memory) && "Invalid access!");
-    return RegImm.Reg;
-  }
-
-  const MCExpr *getImm() const {
-    assert((Kind == k_Immediate || Kind == k_Memory) && "Invalid access!");
-    return RegImm.Imm;
+    assert(Kind == k_Reg && "Invalid access!");
+    return Reg;
   }
 
   static std::unique_ptr<MSP430Operand> CreateToken(StringRef Str, SMLoc S) {
@@ -193,7 +194,7 @@ public:
 
   static std::unique_ptr<MSP430Operand> CreateReg(unsigned RegNum, SMLoc S,
                                                   SMLoc E) {
-    return make_unique<MSP430Operand>(RegNum, S, E);
+    return make_unique<MSP430Operand>(k_Reg, RegNum, S, E);
   }
 
   static std::unique_ptr<MSP430Operand> CreateImm(const MCExpr *Val, SMLoc S,
@@ -202,29 +203,19 @@ public:
   }
 
   static std::unique_ptr<MSP430Operand> CreateMem(unsigned RegNum,
-                                                     const MCExpr *Val,
-                                                     SMLoc S, SMLoc E) {
+                                                  const MCExpr *Val,
+                                                  SMLoc S, SMLoc E) {
     return make_unique<MSP430Operand>(RegNum, Val, S, E);
   }
 
-  void makeToken(StringRef Token) {
-    Kind = k_Token;
-    Tok = Token;
+  static std::unique_ptr<MSP430Operand> CreateIndReg(unsigned RegNum, SMLoc S,
+                                                  SMLoc E) {
+    return make_unique<MSP430Operand>(k_IndReg, RegNum, S, E);
   }
 
-  void makeReg(unsigned RegNo) {
-    Kind = k_Register;
-    RegImm = {RegNo, nullptr};
-  }
-
-  void makeImm(MCExpr const *Ex) {
-    Kind = k_Immediate;
-    RegImm = {0, Ex};
-  }
-
-  void makeMem(unsigned RegNo, MCExpr const *Imm) {
-    Kind = k_Memory;
-    RegImm = {RegNo, Imm};
+  static std::unique_ptr<MSP430Operand> CreatePostIndReg(unsigned RegNum, SMLoc S,
+                                                  SMLoc E) {
+    return make_unique<MSP430Operand>(k_PostIndReg, RegNum, S, E);
   }
 
   SMLoc getStartLoc() const { return Start; }
@@ -232,20 +223,24 @@ public:
 
   virtual void print(raw_ostream &O) const {
     switch (Kind) {
-    case k_Token:
-      O << "Token " << getToken();
+    case k_Tok:
+      O << "Token " << Tok;
       break;
-    case k_Register:
-      O << "Register " << getReg();
+    case k_Reg:
+      O << "Register " << Reg;
       break;
-    case k_Immediate:
-      O << "Immediate " << *getImm();
+    case k_Imm:
+      O << "Immediate " << *Imm;
       break;
-    case k_Memory:
+    case k_Mem:
       O << "Memory ";
-      if (getImm())
-        O << *getImm();
-      O << "(" << getReg() << ")";
+      O << *Mem.Offset << "(" << Reg << ")";
+      break;
+    case k_IndReg:
+      O << "RegInd " << Reg;
+      break;
+    case k_PostIndReg:
+      O << "PostInc " << Reg;
       break;
     }
   }
@@ -325,7 +320,7 @@ bool MSP430AsmParser::parseJccInstruction(ParseInstructionInfo &Info,
   else
     return Error(NameLoc, "unknown instruction");
 
-  if (CondCode == MSP430CC::COND_INVALID)
+  if (CondCode == (unsigned)MSP430CC::COND_INVALID)
     Operands.push_back(MSP430Operand::CreateToken("jmp", NameLoc));
   else {
     Operands.push_back(MSP430Operand::CreateToken("j", NameLoc));
@@ -453,22 +448,17 @@ bool MSP430AsmParser::ParseOperand(OperandVector &Operands) {
     }
     case AsmToken::At: {
       // try @rN[+]
-      SMLoc StartLoc = getParser().getTok().getLoc();
       getLexer().Lex(); // eat At
       unsigned RegNo;
       SMLoc RegStartLoc, EndLoc;
       if (ParseRegister(RegNo, RegStartLoc, EndLoc))
         return true;
       if (getLexer().getKind() == AsmToken::Plus) {
-        SMLoc PlusLoc = getParser().getTok().getLoc();
-        Operands.push_back(MSP430Operand::CreateToken("@", StartLoc));
-        Operands.push_back(MSP430Operand::CreateReg(RegNo, RegStartLoc, EndLoc));
-        Operands.push_back(MSP430Operand::CreateToken("+", PlusLoc));
+        Operands.push_back(MSP430Operand::CreatePostIndReg(RegNo, RegStartLoc, EndLoc));
         getLexer().Lex(); // eat Plus
         return false;
       }
-      const MCExpr *Zero = MCConstantExpr::create(0, getContext());
-      Operands.push_back(MSP430Operand::CreateMem(RegNo, Zero, RegStartLoc, EndLoc));
+      Operands.push_back(MSP430Operand::CreateIndReg(RegNo, RegStartLoc, EndLoc));
       return false;
     }
     case AsmToken::Hash:
@@ -539,7 +529,7 @@ unsigned MSP430AsmParser::validateTargetOperandClass(MCParsedAsmOperand &AsmOp,
       MSP430MCRegisterClasses[MSP430::GR16RegClassID].contains(Reg);
 
   if (isGR16 && (Kind == MCK_GR8)) {
-    Op.RegImm.Reg = convertGR16ToGR8(Reg);
+    Op.Reg = convertGR16ToGR8(Reg);
     return Match_Success;
   }
 

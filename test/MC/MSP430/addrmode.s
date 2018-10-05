@@ -16,7 +16,7 @@ foo:
 ; CHECK:                                        ;   fixup A - offset: 2, value: disp+2, kind: fixup_16_pcrel_byte
 ; CHECK:	mov	&disp+2, r15            ; encoding: [0x1f,0x42,A,A]
 ; CHECK:                                        ;   fixup A - offset: 2, value: disp+2, kind: fixup_16
-; CHECK:	mov	0(r8), r15              ; encoding: [0x1f,0x48,0x00,0x00]
+; CHECK:	mov	@r8, r15                ; encoding: [0x2f,0x48]
 ; CHECK:	mov	@r8+, r15               ; encoding: [0x3f,0x48]
 ; CHECK:	mov	#disp+2, r15            ; encoding: [0x3f,0x40,A,A]
 ; CHECK:                                        ;   fixup A - offset: 2, value: disp+2, kind: fixup_16_byte

@@ -450,6 +450,10 @@ multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
                    !strconcat(asmstring, " $src, $dst"),
                    [(set GR16:$dst, (node GR16:$src2, (load addr:$src))),
                     (implicit SR)]>;
+  def 8rn : I8rn<opcode, (outs GR8:$dst), (ins GR8:$src2, indreg:$src),
+                 !strconcat(asmstring, ".b $src, $dst"), []>;
+  def 16rn : I16rn<opcode, (outs GR16:$dst), (ins GR16:$src2, indreg:$src),
+                   !strconcat(asmstring, " $src, $dst"), []>;
   let mayLoad = 1,
       hasExtraDefRegAllocReq = 1,
       Constraints = "$base = $wb, $src = $dst" in {
@@ -509,6 +513,14 @@ multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
                    [(store (node (load addr:$dst), 
                                  (i16 (load addr:$src))), addr:$dst),
                     (implicit SR)]>;
+  def 8mn : I8mn<opcode, (outs), (ins memdst:$dst, indreg:$src),
+                 !strconcat(asmstring, ".b $src, $dst"), []>;
+  def 16mn : I16mn<opcode, (outs), (ins memdst:$dst, indreg:$src),
+                   !strconcat(asmstring, " $src, $dst"), []>;
+  def 8mp : I8mp<opcode, (outs), (ins memdst:$dst, postreg:$src),
+                 !strconcat(asmstring, ".b $src, $dst"), []>;
+  def 16mp : I16mp<opcode, (outs), (ins memdst:$dst, postreg:$src),
+                   !strconcat(asmstring, " $src, $dst"), []>;
   }
 }
 

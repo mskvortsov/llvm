@@ -43,31 +43,18 @@ foo:
   reti          ; CHECK: reti          ; encoding: [0x00,0x13]
 
   ;; CJForm instructions
-  jnz    foo    ; CHECK: jne    foo    ; encoding: [A,0b001000AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jne    foo    ; CHECK: jne    foo    ; encoding: [A,0b001000AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jeq    foo    ; CHECK: jeq    foo    ; encoding: [A,0b001001AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jz     foo    ; CHECK: jeq    foo    ; encoding: [A,0b001001AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jnc    foo    ; CHECK: jlo    foo    ; encoding: [A,0b001010AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jlo    foo    ; CHECK: jlo    foo    ; encoding: [A,0b001010AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jc     foo    ; CHECK: jhs    foo    ; encoding: [A,0b001011AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jhs    foo    ; CHECK: jhs    foo    ; encoding: [A,0b001011AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jn     foo    ; CHECK: jn     foo    ; encoding: [A,0b001100AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jge    foo    ; CHECK: jge    foo    ; encoding: [A,0b001101AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jl     foo    ; CHECK: jl     foo    ; encoding: [A,0b001110AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-  jmp    foo    ; CHECK: jmp    foo    ; encoding: [A,0b001111AA]
-                ; CHECK:               ;   fixup A - offset: 0, value: foo, kind: fixup_10_pcrel
-
+  jnz    -2     ; CHECK: jne    -2     ; encoding: [0xfe,0x23]
+  jne    -2     ; CHECK: jne    -2     ; encoding: [0xfe,0x23]
+  jeq    -2     ; CHECK: jeq    -2     ; encoding: [0xfe,0x27]
+  jz     -2     ; CHECK: jeq    -2     ; encoding: [0xfe,0x27]
+  jnc    -2     ; CHECK: jlo    -2     ; encoding: [0xfe,0x2b]
+  jlo    -2     ; CHECK: jlo    -2     ; encoding: [0xfe,0x2b]
+  jc     -2     ; CHECK: jhs    -2     ; encoding: [0xfe,0x2f]
+  jhs    -2     ; CHECK: jhs    -2     ; encoding: [0xfe,0x2f]
+  jn     -2     ; CHECK: jn     -2     ; encoding: [0xfe,0x33]
+  jge    -2     ; CHECK: jge    -2     ; encoding: [0xfe,0x37]
+  jl     -2     ; CHECK: jl     -2     ; encoding: [0xfe,0x3b]
+  jmp    -2     ; CHECK: jmp    -2     ; encoding: [0xfe,0x3f]
 
   ;; Emulated arithmetic instructions
   adc    r7     ; CHECK: addc   #0, r7 ; encoding: [0x07,0x63]

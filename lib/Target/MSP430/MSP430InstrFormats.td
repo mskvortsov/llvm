@@ -237,14 +237,14 @@ class I16mm<bits<4> opcode,
 
 class I16mn<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm16<opcode, DstReg, SrcIndReg, 4, outs, ins, asmstr, pattern> {
-  let Inst{31-16} = src{19-4};
+  : IForm16<opcode, DstMem, SrcIndReg, 4, outs, ins, asmstr, pattern> {
+  let Inst{31-16} = dst{19-4};
 }
 
 class I16mp<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm16<opcode, DstReg, SrcPostInc, 4, outs, ins, asmstr, pattern> {
-  let Inst{31-16} = src{19-4};
+  : IForm16<opcode, DstMem, SrcPostInc, 4, outs, ins, asmstr, pattern> {
+  let Inst{31-16} = dst{19-4};
 }
 
 // MSP430 Single Operand (Format II) Instructions

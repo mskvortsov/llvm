@@ -129,8 +129,10 @@ unsigned MSP430MCCodeEmitter::getMemOperandValue(const MCInst &MI,
   unsigned Reg = Ctx.getRegisterInfo()->getEncodingValue(MO1.getReg());
 
   const MCOperand &MO2 = MI.getOperand(Op + 1);
-  if (MO2.isImm())
+  if (MO2.isImm()) {
+    Offset += 2;
     return (MO2.getImm() << 4) | Reg;
+  }
 
   assert(MO2.isExpr() && "Expr operand expected");
   MSP430::Fixups FixupKind;
@@ -155,6 +157,9 @@ unsigned MSP430MCCodeEmitter::getPCRelImmValue(const MCInst &MI, unsigned Op,
                                                SmallVectorImpl<MCFixup> &Fixups,
                                                const MCSubtargetInfo &STI) const {
   const MCOperand &MO = MI.getOperand(Op);
+  if (MO.isImm()) {
+    return MO.getImm();
+  }
   assert(MO.isExpr() && "Expr operand expected");
   Fixups.push_back(MCFixup::create(0, MO.getExpr(),
     static_cast<MCFixupKind>(MSP430::fixup_10_pcrel), MI.getLoc()));

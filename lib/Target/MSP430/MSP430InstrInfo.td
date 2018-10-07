@@ -317,7 +317,7 @@ def MOV16rr : I16rr<0b0100,
 
 // FIXME: Provide proper encoding!
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
-def MOV8rc : I16rc<0b0100,
+def MOV8rc : I8rc<0b0100,
                    (outs GR8:$dst), (ins cg8imm:$imm),
                    "mov.b $imm, $dst",
                    [(set GR8:$dst, cg8imm:$imm)]>;

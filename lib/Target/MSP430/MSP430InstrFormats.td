@@ -143,13 +143,13 @@ class I8mm<bits<4> opcode,
 
 class I8mn<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm8<opcode, DstReg, SrcIndReg, 2, outs, ins, asmstr, pattern> {
+  : IForm8<opcode, DstMem, SrcIndReg, 2, outs, ins, asmstr, pattern> {
   let Inst{31-16} = dst{19-4};
 }
 
 class I8mp<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm8<opcode, DstReg, SrcPostInc, 2, outs, ins, asmstr, pattern> {
+  : IForm8<opcode, DstMem, SrcPostInc, 2, outs, ins, asmstr, pattern> {
   let Inst{31-16} = dst{19-4};
 }
 

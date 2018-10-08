@@ -260,7 +260,19 @@ bool MSP430AsmParser::MatchAndEmitInstruction(SMLoc Loc, unsigned &Opcode,
     Out.EmitInstruction(Inst, STI);
     return false;
   case Match_MnemonicFail:
-    return Error(Loc, "invalid instruction");
+    return Error(Loc, "invalid instruction mnemonic");
+  case Match_InvalidOperand: {
+    SMLoc ErrorLoc = Loc;
+    if (ErrorInfo != ~0U) {
+      if (ErrorInfo >= Operands.size())
+        return Error(ErrorLoc, "too few operands for instruction");
+
+      ErrorLoc = ((MSP430Operand &)*Operands[ErrorInfo]).getStartLoc();
+      if (ErrorLoc == SMLoc())
+        ErrorLoc = Loc;
+    }
+    return Error(ErrorLoc, "invalid operand for instruction");
+  }
   default:
     return true;
   }
@@ -328,10 +340,17 @@ bool MSP430AsmParser::parseJccInstruction(ParseInstructionInfo &Info,
   }
 
   const MCExpr *Val;
+  SMLoc ExprLoc = getLexer().getLoc();
   if (getParser().parseExpression(Val))
-    return Error(getLexer().getLoc(), "expected expression operand");
+    return Error(ExprLoc, "expected expression operand");
 
-  Operands.push_back(MSP430Operand::CreateImm(Val, SMLoc(), SMLoc()));
+  int64_t Res;
+  if (Val->evaluateAsAbsolute(Res))
+    if (Res < -512 || Res > 511)
+      return Error(ExprLoc, "invalid jump offset");
+
+  Operands.push_back(MSP430Operand::CreateImm(Val, ExprLoc,
+    getLexer().getLoc()));
 
   if (getLexer().isNot(AsmToken::EndOfStatement)) {
     SMLoc Loc = getLexer().getLoc();
@@ -447,17 +466,18 @@ bool MSP430AsmParser::ParseOperand(OperandVector &Operands) {
     }
     case AsmToken::At: {
       // try @rN[+]
+      SMLoc StartLoc = getParser().getTok().getLoc();
       getLexer().Lex(); // eat At
       unsigned RegNo;
       SMLoc RegStartLoc, EndLoc;
       if (ParseRegister(RegNo, RegStartLoc, EndLoc))
         return true;
       if (getLexer().getKind() == AsmToken::Plus) {
-        Operands.push_back(MSP430Operand::CreatePostIndReg(RegNo, RegStartLoc, EndLoc));
+        Operands.push_back(MSP430Operand::CreatePostIndReg(RegNo, StartLoc, EndLoc));
         getLexer().Lex(); // eat Plus
         return false;
       }
-      Operands.push_back(MSP430Operand::CreateIndReg(RegNo, RegStartLoc, EndLoc));
+      Operands.push_back(MSP430Operand::CreateIndReg(RegNo, StartLoc, EndLoc));
       return false;
     }
     case AsmToken::Hash:

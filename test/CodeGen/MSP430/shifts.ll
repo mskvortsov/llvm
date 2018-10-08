@@ -21,7 +21,7 @@ entry:
 define zeroext i8 @shl8(i8 zeroext %a, i8 zeroext %cnt) nounwind readnone {
 entry:
 ; CHECK: shl8
-; CHECK: rla.b
+; CHECK: add.b
   %shl = shl i8 %a, %cnt
   ret i8 %shl
 }
@@ -45,7 +45,7 @@ entry:
 define zeroext i16 @shl16(i16 zeroext %a, i16 zeroext %cnt) nounwind readnone {
 entry:
 ; CHECK-LABEL: shl16:
-; CHECK: rla
+; CHECK: add
   %shl = shl i16 %a, %cnt
   ret i16 %shl
 }

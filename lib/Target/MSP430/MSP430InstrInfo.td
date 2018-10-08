@@ -574,7 +574,10 @@ def INV16r  : InstAlias<"inv $dst",    (XOR16rc   GR16:$dst,   -1)>;
 def INV8m   : InstAlias<"inv.b $dst",  (XOR8mc    memdst:$dst, -1)>;
 def INV16m  : InstAlias<"inv $dst",    (XOR16mc   memdst:$dst, -1)>;
 
-// TODO rla?
+def RLA8r   : InstAlias<"rla.b $dst",  (ADD8rr    GR8:$dst,     GR8:$dst)>;
+def RLA16r  : InstAlias<"rla $dst",    (ADD16rr   GR16:$dst,    GR16:$dst)>;
+def RLA8m   : InstAlias<"rla.b $dst",  (ADD8mm    memdst:$dst,  memdst:$dst)>;
+def RLA16m  : InstAlias<"rla $dst",    (ADD16mm   memdst:$dst,  memdst:$dst)>;
 
 def RLC8r   : InstAlias<"rlc.b $dst",  (ADDC8rr   GR8:$dst,     GR8:$dst)>;
 def RLC16r  : InstAlias<"rlc $dst",    (ADDC16rr  GR16:$dst,    GR16:$dst)>;
@@ -614,6 +617,9 @@ def Hack : I16rc<0b1100, (outs), (ins), "clrc", [(MSP430clrc)]> {
 // The following pattern doesn't work: TwoAddressInstructionPass fails.
 //def : Pat<(MSP430clrc), (BIC16rc SR, 1)>;
 
+def : Pat<(MSP430rla GR8:$dst),  (ADD8rr  $dst, $dst)>;
+def : Pat<(MSP430rla GR16:$dst), (ADD16rr $dst, $dst)>;
+
 let Constraints = "$src = $dst" in {
 
 let Defs = [SR] in {
@@ -628,17 +634,6 @@ def SAR16r1 : II16r<0b010,
                     (outs GR16:$dst), (ins GR16:$src),
                     "rra\t$dst",
                     [(set GR16:$dst, (MSP430rra GR16:$src)),
-                     (implicit SR)]>;
-
-def SHL8r1  : I8rr<0b0101,
-                   (outs GR8:$dst), (ins GR8:$src),
-                   "rla.b\t$dst",
-                   [(set GR8:$dst, (MSP430rla GR8:$src)),
-                    (implicit SR)]>;
-def SHL16r1 : I16rr<0b0101,
-                    (outs GR16:$dst), (ins GR16:$src),
-                    "rla\t$dst",
-                    [(set GR16:$dst, (MSP430rla GR16:$src)),
                      (implicit SR)]>;
 
 def RRC8r :   II8r<0b000,

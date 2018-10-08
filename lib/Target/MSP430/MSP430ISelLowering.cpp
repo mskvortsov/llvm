@@ -1391,11 +1391,11 @@ MSP430TargetLowering::EmitShiftInstr(MachineInstr &MI,
   switch (MI.getOpcode()) {
   default: llvm_unreachable("Invalid shift opcode!");
   case MSP430::Shl8:
-   Opc = MSP430::SHL8r1;
+   Opc = MSP430::ADD8rr;
    RC = &MSP430::GR8RegClass;
    break;
   case MSP430::Shl16:
-   Opc = MSP430::SHL16r1;
+   Opc = MSP430::ADD16rr;
    RC = &MSP430::GR16RegClass;
    break;
   case MSP430::Sra8:
@@ -1471,8 +1471,13 @@ MSP430TargetLowering::EmitShiftInstr(MachineInstr &MI,
   if (ClearCarry)
     BuildMI(LoopBB, dl, TII.get(MSP430::BIC16rc), MSP430::SR)
       .addReg(MSP430::SR).addImm(1);
-  BuildMI(LoopBB, dl, TII.get(Opc), ShiftReg2)
-    .addReg(ShiftReg);
+  if (Opc == MSP430::ADD8rr || Opc == MSP430::ADD16rr)
+    BuildMI(LoopBB, dl, TII.get(Opc), ShiftReg2)
+      .addReg(ShiftReg)
+      .addReg(ShiftReg);
+  else
+    BuildMI(LoopBB, dl, TII.get(Opc), ShiftReg2)
+      .addReg(ShiftReg);
   BuildMI(LoopBB, dl, TII.get(MSP430::SUB8ri), ShiftAmtReg2)
     .addReg(ShiftAmtReg).addImm(1);
   BuildMI(LoopBB, dl, TII.get(MSP430::JCC))

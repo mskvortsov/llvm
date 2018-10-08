@@ -40,7 +40,7 @@ public:
                             MCContext &Ctx) const;
 
   bool requiresDiffExpressionRelocations() const override {
-    return false; // TODO
+    return false;
   }
 
   void applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
@@ -49,20 +49,28 @@ public:
                   const MCSubtargetInfo *STI) const override;
 
   std::unique_ptr<MCObjectTargetWriter>
-  createObjectTargetWriter() const override;
+  createObjectTargetWriter() const override {
+    return createMSP430ELFObjectWriter(OSABI);
+  }
 
   bool shouldForceRelocation(const MCAssembler &Asm, const MCFixup &Fixup,
-                             const MCValue &Target) override;
+                             const MCValue &Target) override {
+    return false;
+  }
 
   bool fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value,
                             const MCRelaxableFragment *DF,
-                            const MCAsmLayout &Layout) const override;
+                            const MCAsmLayout &Layout) const override {
+    return false;
+  }
 
   bool fixupNeedsRelaxationAdvanced(const MCFixup &Fixup, bool Resolved,
                                     uint64_t Value,
                                     const MCRelaxableFragment *DF,
                                     const MCAsmLayout &Layout,
-                                    const bool WasForced) const override;
+                                    const bool WasForced) const override {
+    return false;
+  }
 
   unsigned getNumFixupKinds() const override {
     return MSP430::NumTargetFixupKinds;
@@ -133,34 +141,6 @@ void MSP430AsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
   for (unsigned i = 0; i != NumBytes; ++i) {
     Data[Offset + i] |= uint8_t((Value >> (i * 8)) & 0xff);
   }
-}
-
-std::unique_ptr<MCObjectTargetWriter>
-MSP430AsmBackend::createObjectTargetWriter() const {
-  return createMSP430ELFObjectWriter(OSABI);
-}
-
-bool MSP430AsmBackend::shouldForceRelocation(const MCAssembler &Asm,
-                                             const MCFixup &Fixup,
-                                             const MCValue &Target) {
-  // TODO
-  return false;
-}
-
-bool MSP430AsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,
-                                            uint64_t Value,
-                                            const MCRelaxableFragment *DF,
-                                            const MCAsmLayout &Layout) const {
-  assert(0 && "NYI");
-}
-
-bool MSP430AsmBackend::fixupNeedsRelaxationAdvanced(const MCFixup &Fixup,
-                                                    bool Resolved,
-                                                    uint64_t Value,
-                                                    const MCRelaxableFragment *DF,
-                                                    const MCAsmLayout &Layout,
-                                                    const bool WasForced) const {
-  assert(0 && "NYI");
 }
 
 const MCFixupKindInfo &MSP430AsmBackend::getFixupKindInfo(MCFixupKind Kind) const {

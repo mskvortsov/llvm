@@ -209,6 +209,7 @@ let isCodeGenOnly = 1, usesCustomInserter = 1 in {
   def Srl16    : Pseudo<(outs GR16:$dst), (ins GR16:$src, GR8:$cnt),
                         "# Srl16 PSEUDO",
                         [(set GR16:$dst, (srl GR16:$src, GR8:$cnt))]>;
+  def Clrc     : Pseudo<(outs), (ins), "", [(MSP430clrc)]>;
   }
 }
 
@@ -606,16 +607,6 @@ def SETN : InstAlias<"setn", (BIS16rc SR, 4)>;
 def SETZ : InstAlias<"setz", (BIS16rc SR, 2)>;
 
 // TODO pop?
-
-def Hack : I16rc<0b1100, (outs), (ins), "clrc", [(MSP430clrc)]> {
-  let imm = 0b010011;
-  let dst = 2;
-  let Defs = [SR];
-  let isCodeGenOnly = 1;
-}
-
-// The following pattern doesn't work: TwoAddressInstructionPass fails.
-//def : Pat<(MSP430clrc), (BIC16rc SR, 1)>;
 
 def : Pat<(MSP430rla GR8:$dst),  (ADD8rr  $dst, $dst)>;
 def : Pat<(MSP430rla GR16:$dst), (ADD16rr $dst, $dst)>;

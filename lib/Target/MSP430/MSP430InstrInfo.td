@@ -625,12 +625,12 @@ let Constraints = "$src = $dst" in {
 let Defs = [SR] in {
 
 // FIXME: memory variant!
-def SAR8r1  : II8r<0b010,
+def RRA8r :   II8r<0b010,
                    (outs GR8:$dst), (ins GR8:$src),
                    "rra.b\t$dst",
                    [(set GR8:$dst, (MSP430rra GR8:$src)),
                     (implicit SR)]>;
-def SAR16r1 : II16r<0b010,
+def RRA16r : II16r<0b010,
                     (outs GR16:$dst), (ins GR16:$src),
                     "rra\t$dst",
                     [(set GR16:$dst, (MSP430rra GR16:$src)),

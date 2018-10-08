@@ -1399,11 +1399,11 @@ MSP430TargetLowering::EmitShiftInstr(MachineInstr &MI,
    RC = &MSP430::GR16RegClass;
    break;
   case MSP430::Sra8:
-   Opc = MSP430::SAR8r1;
+   Opc = MSP430::RRA8r;
    RC = &MSP430::GR8RegClass;
    break;
   case MSP430::Sra16:
-   Opc = MSP430::SAR16r1;
+   Opc = MSP430::RRA16r;
    RC = &MSP430::GR16RegClass;
    break;
   case MSP430::Srl8:

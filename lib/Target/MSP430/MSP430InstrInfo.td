@@ -636,6 +636,7 @@ def SAR16r1 : II16r<0b010,
                     [(set GR16:$dst, (MSP430rra GR16:$src)),
                      (implicit SR)]>;
 
+let Uses = [SR] in {
 def RRC8r :   II8r<0b000,
                    (outs GR8:$dst), (ins GR8:$src),
                    "rrc.b $dst",
@@ -646,6 +647,7 @@ def RRC16r : II16r<0b000,
                    "rrc $dst",
                    [(set GR16:$dst, (MSP430rrc GR16:$src)),
                     (implicit SR)]>;
+}
 
 // FIXME: Memory sext's ?
 def SEXT16r : II16r<0b011,

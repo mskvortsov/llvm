@@ -1,0 +1,2 @@
+# RUN: llvm-mc -disassemble %s -triple=msp430 | FileCheck %s
+0x0f 0x47 # CHECK: mov r7, r15

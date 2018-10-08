@@ -77,8 +77,7 @@ public:
     MCAsmParserExtension::Initialize(Parser);
     MRI = getContext().getRegisterInfo();
 
-    // TODO
-    //setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
+    setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
   }
 
   MCAsmParser &getParser() const { return Parser; }

@@ -99,6 +99,7 @@ def indreg : Operand<i16> {
   let PrintMethod = "printIndRegOperand";
   let MIOperandInfo = (ops GR16);
   let ParserMatchClass = IndRegAsmOperand;
+  let DecoderMethod = "DecodeGR16RegisterClass";
 }
 
 def PostIndRegAsmOperand : AsmOperandClass {
@@ -110,6 +111,7 @@ def postreg : Operand<i16> {
   let PrintMethod = "printPostIndRegOperand";
   let MIOperandInfo = (ops GR16);
   let ParserMatchClass = PostIndRegAsmOperand;
+  let DecoderMethod = "DecodeGR16RegisterClass";
 }
 
 // Short jump targets have OtherVT type and are printed as pcrel imm values.
@@ -274,14 +276,14 @@ let isCall = 1,
     Defs = [R11, R12, R13, R14, R15, SR],
     Uses = [SP] in {
   def CALLi     : II16i<0b101,
-                        (outs), (ins i16imm:$dst),
-                        "call\t$dst", [(MSP430call imm:$dst)]>;
+                        (outs), (ins i16imm:$src),
+                        "call\t$src", [(MSP430call imm:$src)]>;
   def CALLr     : II16r<0b101,
-                        (outs), (ins GR16:$dst),
-                        "call\t$dst", [(MSP430call GR16:$dst)]>;
+                        (outs), (ins GR16:$src),
+                        "call\t$src", [(MSP430call GR16:$src)]>;
   def CALLm     : II16m<0b101,
-                        (outs), (ins memsrc:$dst),
-                        "call\t$dst", [(MSP430call (load addr:$dst))]>;
+                        (outs), (ins memsrc:$src),
+                        "call\t$src", [(MSP430call (load addr:$src))]>;
 }
 
 //===----------------------------------------------------------------------===//

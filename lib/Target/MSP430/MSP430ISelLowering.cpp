@@ -1508,7 +1508,7 @@ MSP430TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   DebugLoc dl = MI.getDebugLoc();
 
   if (Opc == MSP430::Clrc) {
-    BuildMI(BB, dl, TII.get(MSP430::BIC16rc), MSP430::SR)
+    BuildMI(*BB, MI, dl, TII.get(MSP430::BIC16rc), MSP430::SR)
       .addReg(MSP430::SR).addImm(1);
     MI.eraseFromParent(); // The pseudo instruction is gone now.
     return BB;

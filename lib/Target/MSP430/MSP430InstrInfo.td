@@ -457,11 +457,11 @@ multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
                    !strconcat(asmstring, " $src, $dst"), []>;
   let mayLoad = 1,
       hasExtraDefRegAllocReq = 1,
-      Constraints = "$base = $wb, $src = $dst" in {
-  def 8rp : I8rp<opcode, (outs GR8:$dst, GR8:$wb), (ins GR8:$src, postreg:$base),
-                 !strconcat(asmstring, ".b $base, $dst"), []>;
-  def 16rp : I16rp<opcode, (outs GR16:$dst, GR16:$wb), (ins GR16:$src, postreg:$base),
-                   !strconcat(asmstring, " $base, $dst"), []>;
+      Constraints = "$src = $wb, $src2 = $dst" in {
+  def 8rp : I8rp<opcode, (outs GR8:$dst, GR8:$wb), (ins GR8:$src2, postreg:$src),
+                 !strconcat(asmstring, ".b $src, $dst"), []>;
+  def 16rp : I16rp<opcode, (outs GR16:$dst, GR16:$wb), (ins GR16:$src2, postreg:$src),
+                   !strconcat(asmstring, " $src, $dst"), []>;
   }
   def 8rc : I8rc<opcode, (outs GR8:$dst), (ins GR8:$src2, cg8imm:$imm),
                  !strconcat(asmstring, ".b $imm, $dst"),

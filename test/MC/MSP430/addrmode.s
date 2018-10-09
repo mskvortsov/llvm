@@ -40,7 +40,7 @@ foo:
 ; CHECK: add &disp, r8         ; encoding: [0x18,0x52,A,A]
 ; CHECK: add disp, r8          ; encoding: [0x18,0x50,A,A]
 ; CHECK: add @r9, r8           ; encoding: [0x28,0x59]
-; CHECK: add @r9+, r8          ; encoding: [0x38,0x58]
+; CHECK: add @r9+, r8          ; encoding: [0x38,0x59]
 ; CHECK: add #42, r8           ; encoding: [0x38,0x50,0x2a,0x00]
 
   add r7, 6(r5)

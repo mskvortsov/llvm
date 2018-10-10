@@ -223,7 +223,7 @@ class I16mc<bits<4> opcode,
   let Inst{31-16} = dst{19-4};
   let Inst{15-12} = opcode;
   let Inst{11-8}  = imm{3-0};
-  let Inst{7}     = DstReg.Value;
+  let Inst{7}     = DstMem.Value;
   let Inst{6}     = 0;
   let Inst{5-4}   = imm{5-4};
   let Inst{3-0}   = dst{3-0};

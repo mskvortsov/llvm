@@ -34,6 +34,21 @@ public:
   MSP430Disassembler(const MCSubtargetInfo &STI, MCContext &Ctx)
       : MCDisassembler(STI, Ctx) {}
 
+  DecodeStatus getInstructionI(MCInst &MI, uint64_t &Size,
+                               ArrayRef<uint8_t> Bytes, uint64_t Address,
+                               raw_ostream &VStream,
+                               raw_ostream &CStream) const;
+
+  DecodeStatus getInstructionII(MCInst &MI, uint64_t &Size,
+                                ArrayRef<uint8_t> Bytes, uint64_t Address,
+                                raw_ostream &VStream,
+                                raw_ostream &CStream) const;
+
+  DecodeStatus getInstructionCJ(MCInst &MI, uint64_t &Size,
+                                ArrayRef<uint8_t> Bytes, uint64_t Address,
+                                raw_ostream &VStream,
+                                raw_ostream &CStream) const;
+
   DecodeStatus getInstruction(MCInst &MI, uint64_t &Size,
                               ArrayRef<uint8_t> Bytes, uint64_t Address,
                               raw_ostream &VStream,
@@ -90,26 +105,192 @@ static DecodeStatus DecodeGR16RegisterClass(MCInst &MI, uint64_t RegNo,
 
 #include "MSP430GenDisassemblerTables.inc"
 
+enum AddrMode {
+  amInvalid = 0,
+  amRegister,
+  amIndexed,
+  amIndirect,
+  amIndirectPost,
+  amSymbolic,
+  amImmediate,
+  amAbsolute,
+  amConstant
+};
+
+static AddrMode DecodeSrcAddrMode(unsigned Insn) {
+  unsigned Rs = fieldFromInstruction(Insn, 8, 4);
+  unsigned As = fieldFromInstruction(Insn, 4, 2);
+  switch (Rs) {
+  case 0:
+    if (As == 1) return amSymbolic;
+    if (As == 2) return amInvalid;
+    if (As == 3) return amImmediate;
+    break;
+  case 2:
+    if (As == 1) return amAbsolute;
+    if (As == 2) return amConstant;
+    if (As == 3) return amConstant;
+    break;
+  case 3:
+    return amConstant;
+  default:
+    break;
+  }
+  switch (As) {
+  case 0: return amRegister;
+  case 1: return amIndexed;
+  case 2: return amIndirect;
+  case 3: return amIndirectPost;
+  default:
+    llvm_unreachable("As out of range");
+  }
+}
+
+static AddrMode DecodeDstAddrMode(unsigned Insn) {
+  unsigned Rd = fieldFromInstruction(Insn, 0, 4);
+  unsigned Ad = fieldFromInstruction(Insn, 7, 1);
+  switch (Rd) {
+  case 0: return Ad ? amSymbolic : amRegister;
+  case 2: return Ad ? amAbsolute : amRegister;
+  case 3: return amInvalid;
+  default:
+    break;
+  }
+  return Ad ? amIndexed : amRegister;
+}
+
+static const uint8_t *getDecoderTable(AddrMode SrcAM, unsigned Words) {
+  assert(0 < Words && Words < 4 && "Incorrect number of words");
+  switch (SrcAM) {
+  default:
+    llvm_unreachable("Invalid addressing mode");
+  case amRegister:
+    assert(Words < 3 && "Incorrect number of words");
+    return Words == 2 ? DecoderTableAlpha32 : DecoderTableAlpha16;
+  case amConstant:
+    assert(Words < 3 && "Incorrect number of words");
+    return Words == 2 ? DecoderTableBeta32 : DecoderTableBeta16;
+  case amIndexed:
+  case amSymbolic:
+  case amImmediate:
+  case amAbsolute:
+    assert(Words > 1 && "Incorrect number of words");
+    return Words == 2 ? DecoderTableGamma32 : DecoderTableGamma48;
+  case amIndirect:
+  case amIndirectPost:
+    assert(Words < 3 && "Incorrect number of words");
+    return Words == 2 ? DecoderTableDelta32 : DecoderTableDelta16;
+  }
+}
+
+DecodeStatus MSP430Disassembler::getInstructionI(MCInst &MI, uint64_t &Size,
+                                                 ArrayRef<uint8_t> Bytes,
+                                                 uint64_t Address,
+                                                 raw_ostream &VStream,
+                                                 raw_ostream &CStream) const {
+  uint64_t Insn = support::endian::read16le(Bytes.data());
+  AddrMode SrcAM = DecodeSrcAddrMode(Insn);
+  AddrMode DstAM = DecodeDstAddrMode(Insn);
+  if (SrcAM == amInvalid || DstAM == amInvalid) {
+    Size = 2; // skip one word and let disassembler to try further
+    return MCDisassembler::Fail;
+  }
+
+  unsigned Words = 1;
+  switch (SrcAM) {
+  case amIndexed:
+  case amSymbolic:
+  case amImmediate:
+  case amAbsolute:
+    Insn |= (uint64_t)support::endian::read16le(Bytes.data() + 2) << 16;
+    ++Words;
+    break;
+  default:
+    break;
+  }
+  switch (DstAM) {
+  case amIndexed:
+  case amSymbolic:
+  case amAbsolute:
+    Insn |= (uint64_t)support::endian::read16le(Bytes.data() + 4) << 32;
+    ++Words;
+    break;
+  default:
+    break;
+  }
+
+  DecodeStatus Result = decodeInstruction(getDecoderTable(SrcAM, Words), MI,
+                                          Insn, Address, this, STI);
+  if (Result != MCDisassembler::Fail) {
+    Size = Words * 2;
+    return Result;
+  }
+
+  return DecodeStatus::Fail;
+}
+
+DecodeStatus MSP430Disassembler::getInstructionII(MCInst &MI, uint64_t &Size,
+                                                  ArrayRef<uint8_t> Bytes,
+                                                  uint64_t Address,
+                                                  raw_ostream &VStream,
+                                                  raw_ostream &CStream) const {
+  uint64_t Insn = support::endian::read16le(Bytes.data());
+  AddrMode SrcAM = DecodeSrcAddrMode(Insn);
+  if (SrcAM == amInvalid) {
+    Size = 2; // skip one word and let disassembler to try further
+    return MCDisassembler::Fail;
+  }
+
+  unsigned Words = 1;
+  switch (SrcAM) {
+  case amIndexed:
+  case amSymbolic:
+  case amImmediate:
+  case amAbsolute:
+    Insn |= (uint64_t)support::endian::read16le(Bytes.data() + 2) << 16;
+    ++Words;
+    break;
+  default:
+    break;
+  }
+
+  const uint8_t *DecoderTable = Words == 2 ? DecoderTable32 : DecoderTable16;
+  DecodeStatus Result = decodeInstruction(DecoderTable, MI, Insn, Address,
+                                          this, STI);
+  if (Result != MCDisassembler::Fail) {
+    Size = Words * 2;
+    return Result;
+  }
+
+  return DecodeStatus::Fail;
+}
+
+DecodeStatus MSP430Disassembler::getInstructionCJ(MCInst &MI, uint64_t &Size,
+                                                  ArrayRef<uint8_t> Bytes,
+                                                  uint64_t Address,
+                                                  raw_ostream &VStream,
+                                                  raw_ostream &CStream) const {
+  return DecodeStatus::Fail;
+}
+
 DecodeStatus MSP430Disassembler::getInstruction(MCInst &MI, uint64_t &Size,
                                                 ArrayRef<uint8_t> Bytes,
                                                 uint64_t Address,
                                                 raw_ostream &VStream,
                                                 raw_ostream &CStream) const {
-  uint64_t Insn;
-  DecodeStatus Result;
   if (Bytes.size() < 2) {
     Size = 0;
     return MCDisassembler::Fail;
   }
-  Insn = support::endian::read16le(Bytes.data());
-  Result = decodeInstruction(DecoderTable16, MI, Insn, Address, this, STI);
-  if (Result != MCDisassembler::Fail) {
-    Size = 2;
-    return Result;
+
+  uint64_t Insn = support::endian::read16le(Bytes.data());
+  unsigned Opc = fieldFromInstruction(Insn, 13, 3);
+  switch (Opc) {
+  case 0:
+    return getInstructionII(MI, Size, Bytes, Address, VStream, CStream);
+  case 1:
+    return getInstructionCJ(MI, Size, Bytes, Address, VStream, CStream);
+  default:
+    return getInstructionI(MI, Size, Bytes, Address, VStream, CStream);
   }
-
-  // TODO 4, 6 byte instructions
-
-  Size = 2;
-  return DecodeStatus::Fail;
 }

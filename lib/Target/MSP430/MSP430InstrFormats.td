@@ -67,17 +67,21 @@ class IForm8<bits<4> opcode, DestMode dest, SourceMode src, int size,
 
 class I8rr<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm8<opcode, DstReg, SrcReg, 2, outs, ins, asmstr, pattern>;
+  : IForm8<opcode, DstReg, SrcReg, 2, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Alpha";
+}
 
 class I8ri<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm8<opcode, DstReg, SrcImm, 4, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Gamma";
   let Inst{31-16} = src{19-4};
 }
 
 class I8rc<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, 2, asmstr> {
+  let DecoderNamespace = "Beta";
   let Pattern = pattern;
 
   bits<6> imm;
@@ -94,26 +98,33 @@ class I8rc<bits<4> opcode,
 class I8rm<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm8<opcode, DstReg, SrcMem, 4, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Gamma";
   let Inst{31-16} = src{19-4};
 }
 
 class I8rn<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm8<opcode, DstReg, SrcIndReg, 2, outs, ins, asmstr, pattern>;
+  : IForm8<opcode, DstReg, SrcIndReg, 2, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Delta";
+}
 
 class I8rp<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm8<opcode, DstReg, SrcPostInc, 2, outs, ins, asmstr, pattern>;
+  : IForm8<opcode, DstReg, SrcPostInc, 2, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Delta";
+}
 
 class I8mr<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm8<opcode, DstMem, SrcReg, 4, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Alpha";
   let Inst{31-16} = dst{19-4};
 }
 
 class I8mi<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm8<opcode, DstMem, SrcImm, 6, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Gamma";
   let Inst{31-16} = src{19-4};
   let Inst{47-32} = dst{19-4};
 }
@@ -121,6 +132,7 @@ class I8mi<bits<4> opcode,
 class I8mc<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, 2, asmstr> {
+  let DecoderNamespace = "Beta";
   let Pattern = pattern;
 
   bits<6> imm;
@@ -138,6 +150,7 @@ class I8mc<bits<4> opcode,
 class I8mm<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm8<opcode, DstMem, SrcMem, 6, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Gamma";
   let Inst{31-16} = src{19-4};
   let Inst{47-32} = dst{19-4};
 }
@@ -145,12 +158,14 @@ class I8mm<bits<4> opcode,
 class I8mn<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm8<opcode, DstMem, SrcIndReg, 2, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Delta";
   let Inst{31-16} = dst{19-4};
 }
 
 class I8mp<bits<4> opcode,
            dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm8<opcode, DstMem, SrcPostInc, 2, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Delta";
   let Inst{31-16} = dst{19-4};
 }
 
@@ -161,17 +176,21 @@ class IForm16<bits<4> opcode, DestMode dest, SourceMode src, int size,
 
 class I16rr<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm16<opcode, DstReg, SrcReg, 2, outs, ins, asmstr, pattern>;
+  : IForm16<opcode, DstReg, SrcReg, 2, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Alpha";
+}
 
 class I16ri<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm16<opcode, DstReg, SrcImm, 4, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Gamma";
   let Inst{31-16} = src{19-4};
 }
 
 class I16rc<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, 2, asmstr> {
+  let DecoderNamespace = "Beta";
   let Pattern = pattern;
 
   bits<6> imm;
@@ -188,26 +207,33 @@ class I16rc<bits<4> opcode,
 class I16rm<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm16<opcode, DstReg, SrcMem, 4, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Gamma";
   let Inst{31-16} = src{19-4};
 }
 
 class I16rn<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm16<opcode, DstReg, SrcIndReg, 2, outs, ins, asmstr, pattern>;
+  : IForm16<opcode, DstReg, SrcIndReg, 2, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Delta";
+}
 
 class I16rp<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
-  : IForm16<opcode, DstReg, SrcPostInc, 2, outs, ins, asmstr, pattern>;
+  : IForm16<opcode, DstReg, SrcPostInc, 2, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Delta";
+}
 
 class I16mr<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm16<opcode, DstMem, SrcReg, 4, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Alpha";
   let Inst{31-16} = dst{19-4};
 }
 
 class I16mi<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm16<opcode, DstMem, SrcImm, 6, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Gamma";
   let Inst{31-16} = src{19-4};
   let Inst{47-32} = dst{19-4};
 }
@@ -215,6 +241,7 @@ class I16mi<bits<4> opcode,
 class I16mc<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : MSP430Inst<outs, ins, 4, asmstr> {
+  let DecoderNamespace = "Beta";
   let Pattern = pattern;
 
   bits<6> imm;
@@ -232,6 +259,7 @@ class I16mc<bits<4> opcode,
 class I16mm<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm16<opcode, DstMem, SrcMem, 6, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Gamma";
   let Inst{31-16} = src{19-4};
   let Inst{47-32} = dst{19-4};
 }
@@ -239,12 +267,14 @@ class I16mm<bits<4> opcode,
 class I16mn<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm16<opcode, DstMem, SrcIndReg, 4, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Delta";
   let Inst{31-16} = dst{19-4};
 }
 
 class I16mp<bits<4> opcode,
             dag outs, dag ins, string asmstr, list<dag> pattern>
   : IForm16<opcode, DstMem, SrcPostInc, 4, outs, ins, asmstr, pattern> {
+  let DecoderNamespace = "Delta";
   let Inst{31-16} = dst{19-4};
 }
 

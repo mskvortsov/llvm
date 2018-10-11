@@ -223,12 +223,12 @@ let isCodeGenOnly = 1, usesCustomInserter = 1 in {
 let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
   def RET  : IForm16<0b0100, DstReg, SrcPostInc, 2,
                      (outs), (ins), "ret",  [(MSP430retflag)]> {
-    let src = 1;
-    let dst = 0;
+    let rs = 1;
+    let rd = 0;
   }
   def RETI : IIForm16<0b110, SrcReg, 2,
                       (outs), (ins), "reti", [(MSP430retiflag)]> {
-    let src = 0;
+    let rs = 0;
   }
 }
 
@@ -244,14 +244,14 @@ let isBarrier = 1 in {
                    [(br bb:$dst)]> {
     let cond = 0b111;
   }
-  let isIndirectBranch = 1, dst = 0 in {
+  let isIndirectBranch = 1, rd = 0 in {
     // Long branches
     def Bi  : I16ri<0b0100, (outs), (ins i16imm:$src),
                     "br\t$src",
                     [(brind tblockaddress:$src)]>;
-    def Br  : I16rr<0b0100, (outs), (ins GR16:$src),
-                    "br\t$src",
-                    [(brind GR16:$src)]>;
+    def Br  : I16rr<0b0100, (outs), (ins GR16:$rs),
+                    "br\t$rs",
+                    [(brind GR16:$rs)]>;
     def Bm  : I16rm<0b0100, (outs), (ins memsrc:$src),
                     "br\t$src",
                     [(brind (load addr:$src))]>;
@@ -276,11 +276,11 @@ let isCall = 1,
     Defs = [R11, R12, R13, R14, R15, SR],
     Uses = [SP] in {
   def CALLi     : II16i<0b101,
-                        (outs), (ins i16imm:$src),
-                        "call\t$src", [(MSP430call imm:$src)]>;
+                        (outs), (ins i16imm:$imm),
+                        "call\t$imm", [(MSP430call imm:$imm)]>;
   def CALLr     : II16r<0b101,
-                        (outs), (ins GR16:$src),
-                        "call\t$src", [(MSP430call GR16:$src)]>;
+                        (outs), (ins GR16:$rs),
+                        "call\t$rs", [(MSP430call GR16:$rs)]>;
   def CALLm     : II16m<0b101,
                         (outs), (ins memsrc:$src),
                         "call\t$src", [(MSP430call (load addr:$src))]>;
@@ -292,15 +292,15 @@ let isCall = 1,
 let Defs = [SP], Uses = [SP], hasSideEffects=0 in {
 let mayLoad = 1 in
 def POP16r   : IForm16<0b0100, DstReg, SrcPostInc, 2,
-                       (outs GR16:$dst), (ins), "pop\t$dst", []> {
-  let src = 1;
+                       (outs GR16:$rd), (ins), "pop\t$rd", []> {
+  let rs = 1;
 }
 
 let mayStore = 1 in
-def PUSH8r :  II8r<0b100, (outs), (ins GR8:$src), "push.b\t$src", []>;
-def PUSH16r : II16r<0b100, (outs), (ins GR16:$src), "push\t$src", []>;
+def PUSH8r :  II8r<0b100, (outs), (ins GR8:$rs), "push.b\t$rs", []>;
+def PUSH16r : II16r<0b100, (outs), (ins GR16:$rs), "push\t$rs", []>;
 def PUSH16c : II16c<0b100, (outs), (ins cg16imm:$imm), "push\t$imm", []>;
-def PUSH16i : II16i<0b100, (outs), (ins i16imm:$src), "push\t$src", []>;
+def PUSH16i : II16i<0b100, (outs), (ins i16imm:$imm), "push\t$imm", []>;
 }
 
 //===----------------------------------------------------------------------===//
@@ -309,72 +309,72 @@ def PUSH16i : II16i<0b100, (outs), (ins i16imm:$src), "push\t$src", []>;
 // FIXME: Provide proper encoding!
 let hasSideEffects = 0 in {
 def MOV8rr  : I8rr<0b0100,
-                   (outs GR8:$dst), (ins GR8:$src),
-                   "mov.b\t{$src, $dst}",
+                   (outs GR8:$rd), (ins GR8:$rs),
+                   "mov.b\t{$rs, $rd}",
                    []>;
 def MOV16rr : I16rr<0b0100,
-                    (outs GR16:$dst), (ins GR16:$src),
-                    "mov\t{$src, $dst}",
+                    (outs GR16:$rd), (ins GR16:$rs),
+                    "mov\t{$rs, $rd}",
                     []>;
 }
 
 // FIXME: Provide proper encoding!
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
 def MOV8rc : I8rc<0b0100,
-                   (outs GR8:$dst), (ins cg8imm:$imm),
-                   "mov.b $imm, $dst",
-                   [(set GR8:$dst, cg8imm:$imm)]>;
+                   (outs GR8:$rd), (ins cg8imm:$imm),
+                   "mov.b\t$imm, $rd",
+                   [(set GR8:$rd, cg8imm:$imm)]>;
 def MOV16rc : I16rc<0b0100,
-                    (outs GR16:$dst), (ins cg16imm:$imm),
-                    "mov $imm, $dst",
-                    [(set GR16:$dst, cg16imm:$imm)]>;
+                    (outs GR16:$rd), (ins cg16imm:$imm),
+                    "mov\t$imm, $rd",
+                    [(set GR16:$rd, cg16imm:$imm)]>;
 def MOV8ri  : I8ri<0b0100,
-                   (outs GR8:$dst), (ins i8imm:$src),
-                   "mov.b\t{$src, $dst}",
-                   [(set GR8:$dst, imm:$src)]>;
+                   (outs GR8:$rd), (ins i8imm:$src),
+                   "mov.b\t{$src, $rd}",
+                   [(set GR8:$rd, imm:$src)]>;
 def MOV16ri : I16ri<0b0100,
-                    (outs GR16:$dst), (ins i16imm:$src),
-                    "mov\t{$src, $dst}",
-                    [(set GR16:$dst, imm:$src)]>;
+                    (outs GR16:$rd), (ins i16imm:$imm),
+                    "mov\t{$imm, $rd}",
+                    [(set GR16:$rd, imm:$imm)]>;
 }
 
 let canFoldAsLoad = 1, isReMaterializable = 1 in {
 def MOV8rm  : I8rm<0b0100,
-                   (outs GR8:$dst), (ins memsrc:$src),
-                   "mov.b\t{$src, $dst}",
-                   [(set GR8:$dst, (load addr:$src))]>;
+                   (outs GR8:$rd), (ins memsrc:$src),
+                   "mov.b\t{$src, $rd}",
+                   [(set GR8:$rd, (load addr:$src))]>;
 def MOV16rm : I16rm<0b0100,
-                    (outs GR16:$dst), (ins memsrc:$src),
-                    "mov\t{$src, $dst}",
-                    [(set GR16:$dst, (load addr:$src))]>;
+                    (outs GR16:$rd), (ins memsrc:$src),
+                    "mov\t{$src, $rd}",
+                    [(set GR16:$rd, (load addr:$src))]>;
 def MOV8rn  : I8rn<0b0100,
-                   (outs GR8:$dst), (ins indreg:$src),
-                   "mov.b\t{$src, $dst}",
-                   [(set GR8:$dst, (load addr:$src))]>;
+                   (outs GR8:$rd), (ins indreg:$rs),
+                   "mov.b\t{$rs, $rd}",
+                   [(set GR8:$rd, (load addr:$rs))]>;
 def MOV16rn : I16rn<0b0100,
-                    (outs GR16:$dst), (ins indreg:$src),
-                    "mov\t{$src, $dst}",
-                    [(set GR16:$dst, (load addr:$src))]>;
+                    (outs GR16:$rd), (ins indreg:$rs),
+                    "mov\t{$rs, $rd}",
+                    [(set GR16:$rd, (load addr:$rs))]>;
 }
 
 let isCodeGenOnly = 1 in {
 def MOVZX16rr8 : I8rr<0b0100,
-                      (outs GR16:$dst), (ins GR8:$src),
-                      "mov.b\t{$src, $dst}",
-                      [(set GR16:$dst, (zext GR8:$src))]>;
+                      (outs GR16:$rd), (ins GR8:$rs),
+                      "mov.b\t{$rs, $rd}",
+                      [(set GR16:$rd, (zext GR8:$rs))]>;
 def MOVZX16rm8 : I8rm<0b0100,
-                      (outs GR16:$dst), (ins memsrc:$src),
-                      "mov.b\t{$src, $dst}",
-                      [(set GR16:$dst, (zextloadi16i8 addr:$src))]>;
+                      (outs GR16:$rd), (ins memsrc:$src),
+                      "mov.b\t{$src, $rd}",
+                      [(set GR16:$rd, (zextloadi16i8 addr:$src))]>;
 }
 
-let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$src = $wb" in {
+let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$rs = $wb" in {
 def MOV8rp  : I8rp<0b0100,
-                   (outs GR8:$dst, GR16:$wb), (ins postreg:$src),
-                   "mov.b\t{$src, $dst}", []>;
+                   (outs GR8:$rd, GR16:$wb), (ins postreg:$rs),
+                   "mov.b\t{$rs, $rd}", []>;
 def MOV16rp : I16rp<0b0100,
-                    (outs GR16:$dst, GR16:$wb), (ins postreg:$src),
-                    "mov\t{$src, $dst}", []>;
+                    (outs GR16:$rd, GR16:$wb), (ins postreg:$rs),
+                    "mov\t{$rs, $rd}", []>;
 }
 
 // Any instruction that defines a 8-bit result leaves the high half of the
@@ -402,22 +402,22 @@ def MOV16mc : I16mc<0b0100,
                     [(store (i16 cg16imm:$imm), addr:$dst)]>;
 
 def MOV8mi  : I8mi<0b0100,
-                   (outs), (ins memdst:$dst, i8imm:$src),
-                   "mov.b\t{$src, $dst}",
-                   [(store (i8 imm:$src), addr:$dst)]>;
+                   (outs), (ins memdst:$dst, i8imm:$imm),
+                   "mov.b\t{$imm, $dst}",
+                   [(store (i8 imm:$imm), addr:$dst)]>;
 def MOV16mi : I16mi<0b0100,
-                    (outs), (ins memdst:$dst, i16imm:$src),
-                    "mov\t{$src, $dst}",
-                    [(store (i16 imm:$src), addr:$dst)]>;
+                    (outs), (ins memdst:$dst, i16imm:$imm),
+                    "mov\t{$imm, $dst}",
+                    [(store (i16 imm:$imm), addr:$dst)]>;
 
 def MOV8mr  : I8mr<0b0100,
-                   (outs), (ins memdst:$dst, GR8:$src),
-                   "mov.b\t{$src, $dst}",
-                   [(store GR8:$src, addr:$dst)]>;
+                   (outs), (ins memdst:$dst, GR8:$rs),
+                   "mov.b\t{$rs, $dst}",
+                   [(store GR8:$rs, addr:$dst)]>;
 def MOV16mr : I16mr<0b0100,
-                    (outs), (ins memdst:$dst, GR16:$src),
-                    "mov\t{$src, $dst}",
-                    [(store GR16:$src, addr:$dst)]>;
+                    (outs), (ins memdst:$dst, GR16:$rs),
+                    "mov\t{$rs, $dst}",
+                    [(store GR16:$rs, addr:$dst)]>;
 
 def MOV8mm  : I8mm<0b0100,
                    (outs), (ins memdst:$dst, memsrc:$src),
@@ -434,96 +434,96 @@ def MOV16mm : I16mm<0b0100,
 multiclass Arith<bits<4> opcode, string asmstring, SDNode node,
                  bit commutes, list<Register> uses> {
   let Defs = [SR], Uses = uses in {
-  let Constraints = "$src2 = $dst" in {
+  let Constraints = "$src2 = $rd" in {
   let isCommutable = commutes in {
-  def 8rr : I8rr<opcode, (outs GR8:$dst), (ins GR8:$src2, GR8:$src),
-                 !strconcat(asmstring, ".b $src, $dst"),
-                 [(set GR8:$dst, (node GR8:$src2, GR8:$src)),
+  def 8rr : I8rr<opcode, (outs GR8:$rd), (ins GR8:$src2, GR8:$rs),
+                 !strconcat(asmstring, ".b\t$rs, $rd"),
+                 [(set GR8:$rd, (node GR8:$src2, GR8:$rs)),
                   (implicit SR)]>;
-  def 16rr : I16rr<opcode, (outs GR16:$dst), (ins GR16:$src2, GR16:$src),
-                   !strconcat(asmstring, " $src, $dst"),
-                   [(set GR16:$dst, (node GR16:$src2, GR16:$src)),
+  def 16rr : I16rr<opcode, (outs GR16:$rd), (ins GR16:$src2, GR16:$rs),
+                   !strconcat(asmstring, "\t$rs, $rd"),
+                   [(set GR16:$rd, (node GR16:$src2, GR16:$rs)),
                     (implicit SR)]>;
   }
-  def 8rm : I8rm<opcode, (outs GR8:$dst), (ins GR8:$src2, memsrc:$src),
-                 !strconcat(asmstring, ".b $src, $dst"),
-                 [(set GR8:$dst, (node GR8:$src2, (load addr:$src))),
+  def 8rm : I8rm<opcode, (outs GR8:$rd), (ins GR8:$src2, memsrc:$src),
+                 !strconcat(asmstring, ".b\t$src, $rd"),
+                 [(set GR8:$rd, (node GR8:$src2, (load addr:$src))),
                   (implicit SR)]>;
-  def 16rm : I16rm<opcode, (outs GR16:$dst), (ins GR16:$src2, memsrc:$src),
-                   !strconcat(asmstring, " $src, $dst"),
-                   [(set GR16:$dst, (node GR16:$src2, (load addr:$src))),
+  def 16rm : I16rm<opcode, (outs GR16:$rd), (ins GR16:$src2, memsrc:$src),
+                   !strconcat(asmstring, "\t$src, $rd"),
+                   [(set GR16:$rd, (node GR16:$src2, (load addr:$src))),
                     (implicit SR)]>;
-  def 8rn : I8rn<opcode, (outs GR8:$dst), (ins GR8:$src2, indreg:$src),
-                 !strconcat(asmstring, ".b $src, $dst"), []>;
-  def 16rn : I16rn<opcode, (outs GR16:$dst), (ins GR16:$src2, indreg:$src),
-                   !strconcat(asmstring, " $src, $dst"), []>;
+  def 8rn : I8rn<opcode, (outs GR8:$rd), (ins GR8:$src2, indreg:$rs),
+                 !strconcat(asmstring, ".b\t$rs, $rd"), []>;
+  def 16rn : I16rn<opcode, (outs GR16:$rd), (ins GR16:$src2, indreg:$rs),
+                   !strconcat(asmstring, "\t$rs, $rd"), []>;
   let mayLoad = 1,
       hasExtraDefRegAllocReq = 1,
-      Constraints = "$src = $wb, $src2 = $dst" in {
-  def 8rp : I8rp<opcode, (outs GR8:$dst, GR8:$wb), (ins GR8:$src2, postreg:$src),
-                 !strconcat(asmstring, ".b $src, $dst"), []>;
-  def 16rp : I16rp<opcode, (outs GR16:$dst, GR16:$wb), (ins GR16:$src2, postreg:$src),
-                   !strconcat(asmstring, " $src, $dst"), []>;
+      Constraints = "$rs = $wb, $src2 = $rd" in {
+  def 8rp : I8rp<opcode, (outs GR8:$rd, GR8:$wb), (ins GR8:$src2, postreg:$rs),
+                 !strconcat(asmstring, ".b\t$rs, $rd"), []>;
+  def 16rp : I16rp<opcode, (outs GR16:$rd, GR16:$wb), (ins GR16:$src2, postreg:$rs),
+                   !strconcat(asmstring, "\t$rs, $rd"), []>;
   }
-  def 8rc : I8rc<opcode, (outs GR8:$dst), (ins GR8:$src2, cg8imm:$imm),
-                 !strconcat(asmstring, ".b $imm, $dst"),
-                 [(set GR8:$dst, (node GR8:$src2, cg8imm:$imm)),
+  def 8rc : I8rc<opcode, (outs GR8:$rd), (ins GR8:$src2, cg8imm:$imm),
+                 !strconcat(asmstring, ".b\t$imm, $rd"),
+                 [(set GR8:$rd, (node GR8:$src2, cg8imm:$imm)),
                   (implicit SR)]>;
-  def 16rc : I16rc<opcode, (outs GR16:$dst), (ins GR16:$src2, cg16imm:$imm),
-                 !strconcat(asmstring, " $imm, $dst"),
-                 [(set GR16:$dst, (node GR16:$src2, cg16imm:$imm)),
+  def 16rc : I16rc<opcode, (outs GR16:$rd), (ins GR16:$src2, cg16imm:$imm),
+                 !strconcat(asmstring, "\t$imm, $rd"),
+                 [(set GR16:$rd, (node GR16:$src2, cg16imm:$imm)),
                   (implicit SR)]>;
-  def 8ri : I8ri<opcode, (outs GR8:$dst), (ins GR8:$src2, i8imm:$src),
-                 !strconcat(asmstring, ".b $src, $dst"),
-                 [(set GR8:$dst, (node GR8:$src2, imm:$src)),
+  def 8ri : I8ri<opcode, (outs GR8:$rd), (ins GR8:$src2, i8imm:$imm),
+                 !strconcat(asmstring, ".b\t$imm, $rd"),
+                 [(set GR8:$rd, (node GR8:$src2, imm:$imm)),
                   (implicit SR)]>;
-  def 16ri : I16ri<opcode, (outs GR16:$dst), (ins GR16:$src2, i16imm:$src),
-                 !strconcat(asmstring, " $src, $dst"),
-                 [(set GR16:$dst, (node GR16:$src2, imm:$src)),
+  def 16ri : I16ri<opcode, (outs GR16:$rd), (ins GR16:$src2, i16imm:$imm),
+                 !strconcat(asmstring, "\t$imm, $rd"),
+                 [(set GR16:$rd, (node GR16:$src2, imm:$imm)),
                   (implicit SR)]>;
   }
-  def 8mr : I8mr<opcode, (outs), (ins memdst:$dst, GR8:$src),
-                 !strconcat(asmstring, ".b $src, $dst"),
-                 [(store (node (load addr:$dst), GR8:$src), addr:$dst),
+  def 8mr : I8mr<opcode, (outs), (ins memdst:$dst, GR8:$rs),
+                 !strconcat(asmstring, ".b\t$rs, $dst"),
+                 [(store (node (load addr:$dst), GR8:$rs), addr:$dst),
                   (implicit SR)]>;
-  def 16mr : I16mr<opcode, (outs), (ins memdst:$dst, GR16:$src),
-                   !strconcat(asmstring, " $src, $dst"),
-                   [(store (node (load addr:$dst), GR16:$src), addr:$dst),
+  def 16mr : I16mr<opcode, (outs), (ins memdst:$dst, GR16:$rs),
+                   !strconcat(asmstring, "\t$rs, $dst"),
+                   [(store (node (load addr:$dst), GR16:$rs), addr:$dst),
                     (implicit SR)]>;
   def 8mc : I8mc<opcode, (outs), (ins memdst:$dst, cg8imm:$imm),
-                 !strconcat(asmstring, ".b $imm, $dst"),
+                 !strconcat(asmstring, ".b\t$imm, $dst"),
                  [(store (node (load addr:$dst), (i8 cg8imm:$imm)), addr:$dst),
                   (implicit SR)]>;
   def 16mc : I16mc<opcode, (outs), (ins memdst:$dst, cg16imm:$imm),
-                   !strconcat(asmstring, " $imm, $dst"),
+                   !strconcat(asmstring, "\t$imm, $dst"),
                    [(store (node (load addr:$dst), (i16 cg16imm:$imm)), addr:$dst),
                     (implicit SR)]>;
-  def 8mi : I8mi<opcode, (outs), (ins memdst:$dst, i8imm:$src),
-                 !strconcat(asmstring, ".b $src, $dst"),
-                 [(store (node (load addr:$dst), (i8 imm:$src)), addr:$dst),
+  def 8mi : I8mi<opcode, (outs), (ins memdst:$dst, i8imm:$imm),
+                 !strconcat(asmstring, ".b\t$imm, $dst"),
+                 [(store (node (load addr:$dst), (i8 imm:$imm)), addr:$dst),
                   (implicit SR)]>;
-  def 16mi : I16mi<opcode, (outs), (ins memdst:$dst, i16imm:$src),
-                   !strconcat(asmstring, " $src, $dst"),
-                   [(store (node (load addr:$dst), (i16 imm:$src)), addr:$dst),
+  def 16mi : I16mi<opcode, (outs), (ins memdst:$dst, i16imm:$imm),
+                   !strconcat(asmstring, "\t$imm, $dst"),
+                   [(store (node (load addr:$dst), (i16 imm:$imm)), addr:$dst),
                     (implicit SR)]>;
   def 8mm : I8mm<opcode, (outs), (ins memdst:$dst, memsrc:$src),
-                 !strconcat(asmstring, ".b $src, $dst"),
+                 !strconcat(asmstring, ".b\t$src, $dst"),
                  [(store (node (load addr:$dst), 
                                (i8 (load addr:$src))), addr:$dst),
                   (implicit SR)]>;
   def 16mm : I16mm<opcode, (outs), (ins memdst:$dst, memsrc:$src),
-                   !strconcat(asmstring, " $src, $dst"),
+                   !strconcat(asmstring, "\t$src, $dst"),
                    [(store (node (load addr:$dst), 
                                  (i16 (load addr:$src))), addr:$dst),
                     (implicit SR)]>;
-  def 8mn : I8mn<opcode, (outs), (ins memdst:$dst, indreg:$src),
-                 !strconcat(asmstring, ".b $src, $dst"), []>;
-  def 16mn : I16mn<opcode, (outs), (ins memdst:$dst, indreg:$src),
-                   !strconcat(asmstring, " $src, $dst"), []>;
-  def 8mp : I8mp<opcode, (outs), (ins memdst:$dst, postreg:$src),
-                 !strconcat(asmstring, ".b $src, $dst"), []>;
-  def 16mp : I16mp<opcode, (outs), (ins memdst:$dst, postreg:$src),
-                   !strconcat(asmstring, " $src, $dst"), []>;
+  def 8mn : I8mn<opcode, (outs), (ins memdst:$dst, indreg:$rs),
+                 !strconcat(asmstring, ".b\t$rs, $dst"), []>;
+  def 16mn : I16mn<opcode, (outs), (ins memdst:$dst, indreg:$rs),
+                   !strconcat(asmstring, "\t$rs, $dst"), []>;
+  def 8mp : I8mp<opcode, (outs), (ins memdst:$dst, postreg:$rs),
+                 !strconcat(asmstring, ".b\t$rs, $dst"), []>;
+  def 16mp : I16mp<opcode, (outs), (ins memdst:$dst, postreg:$rs),
+                   !strconcat(asmstring, "\t$rs, $dst"), []>;
   }
 }
 
@@ -613,199 +613,199 @@ def SETZ : InstAlias<"setz", (BIS16rc SR, 2)>;
 def : Pat<(MSP430rla GR8:$dst),  (ADD8rr  $dst, $dst)>;
 def : Pat<(MSP430rla GR16:$dst), (ADD16rr $dst, $dst)>;
 
-let Constraints = "$src = $dst" in {
+let Constraints = "$rs = $rd" in {
 
 let Defs = [SR] in {
 
 // FIXME: memory variant!
 def RRA8r :   II8r<0b010,
-                   (outs GR8:$dst), (ins GR8:$src),
-                   "rra.b\t$dst",
-                   [(set GR8:$dst, (MSP430rra GR8:$src)),
+                   (outs GR8:$rd), (ins GR8:$rs),
+                   "rra.b\t$rd",
+                   [(set GR8:$rd, (MSP430rra GR8:$rs)),
                     (implicit SR)]>;
 def RRA16r : II16r<0b010,
-                    (outs GR16:$dst), (ins GR16:$src),
-                    "rra\t$dst",
-                    [(set GR16:$dst, (MSP430rra GR16:$src)),
+                    (outs GR16:$rd), (ins GR16:$rs),
+                    "rra\t$rd",
+                    [(set GR16:$rd, (MSP430rra GR16:$rs)),
                      (implicit SR)]>;
 
 let Uses = [SR] in {
 def RRC8r :   II8r<0b000,
-                   (outs GR8:$dst), (ins GR8:$src),
-                   "rrc.b $dst",
-                   [(set GR8:$dst, (MSP430rrc GR8:$src)),
+                   (outs GR8:$rd), (ins GR8:$rs),
+                   "rrc.b\t$rd",
+                   [(set GR8:$rd, (MSP430rrc GR8:$rs)),
                     (implicit SR)]>;
 def RRC16r : II16r<0b000,
-                   (outs GR16:$dst), (ins GR16:$src),
-                   "rrc $dst",
-                   [(set GR16:$dst, (MSP430rrc GR16:$src)),
+                   (outs GR16:$rd), (ins GR16:$rs),
+                   "rrc\t$rd",
+                   [(set GR16:$rd, (MSP430rrc GR16:$rs)),
                     (implicit SR)]>;
 }
 
 // FIXME: Memory sext's ?
 def SEXT16r : II16r<0b011,
-                    (outs GR16:$dst), (ins GR16:$src),
-                    "sxt\t$dst",
-                    [(set GR16:$dst, (sext_inreg GR16:$src, i8)),
+                    (outs GR16:$rd), (ins GR16:$rs),
+                    "sxt\t$rd",
+                    [(set GR16:$rd, (sext_inreg GR16:$rs, i8)),
                      (implicit SR)]>;
 
 } // Defs = [SR]
 
 let isCodeGenOnly = 1 in
 def ZEXT16r : I8rr<0b0100,
-                   (outs GR16:$dst), (ins GR16:$src),
-                   "mov.b\t{$src, $dst}",
-                   [(set GR16:$dst, (zext (trunc GR16:$src)))]>;
+                   (outs GR16:$rd), (ins GR16:$rs),
+                   "mov.b\t{$rs, $rd}",
+                   [(set GR16:$rd, (zext (trunc GR16:$rs)))]>;
 
 // FIXME: Memory bitswaps?
 def SWPB16r : II16r<0b001,
-                    (outs GR16:$dst), (ins GR16:$src),
-                    "swpb\t$dst",
-                    [(set GR16:$dst, (bswap GR16:$src))]>;
+                    (outs GR16:$rd), (ins GR16:$rs),
+                    "swpb\t$rd",
+                    [(set GR16:$rd, (bswap GR16:$rs))]>;
 
 } // Constraints = "$src = $dst"
 
 // Integer comparisons
 let Defs = [SR] in {
 def CMP8rr  : I8rr<0b1001,
-                   (outs), (ins GR8:$dst, GR8:$src),
-                   "cmp.b $src, $dst",
-                   [(MSP430cmp GR8:$dst, GR8:$src), (implicit SR)]>;
+                   (outs), (ins GR8:$rd, GR8:$rs),
+                   "cmp.b\t$rs, $rd",
+                   [(MSP430cmp GR8:$rd, GR8:$rs), (implicit SR)]>;
 def CMP16rr : I16rr<0b1001,
-                    (outs), (ins GR16:$dst, GR16:$src),
-                    "cmp $src, $dst",
-                    [(MSP430cmp GR16:$dst, GR16:$src), (implicit SR)]>;
+                    (outs), (ins GR16:$rd, GR16:$rs),
+                    "cmp\t$rs, $rd",
+                    [(MSP430cmp GR16:$rd, GR16:$rs), (implicit SR)]>;
 
 def CMP8rc  : I8rc<0b1001,
-                   (outs), (ins GR8:$dst, cg8imm:$imm),
-                   "cmp.b $imm, $dst",
-                   [(MSP430cmp GR8:$dst, cg8imm:$imm), (implicit SR)]>;
+                   (outs), (ins GR8:$rd, cg8imm:$imm),
+                   "cmp.b\t$imm, $rd",
+                   [(MSP430cmp GR8:$rd, cg8imm:$imm), (implicit SR)]>;
 def CMP16rc : I16rc<0b1001,
-                    (outs), (ins GR16:$dst, cg16imm:$imm),
-                    "cmp $imm, $dst",
-                    [(MSP430cmp GR16:$dst, cg16imm:$imm), (implicit SR)]>;
+                    (outs), (ins GR16:$rd, cg16imm:$imm),
+                    "cmp\t$imm, $rd",
+                    [(MSP430cmp GR16:$rd, cg16imm:$imm), (implicit SR)]>;
 
 def CMP8ri  : I8ri<0b1001,
-                   (outs), (ins GR8:$dst, i8imm:$src),
-                   "cmp.b $src, $dst",
-                   [(MSP430cmp GR8:$dst, imm:$src), (implicit SR)]>;
+                   (outs), (ins GR8:$rd, i8imm:$imm),
+                   "cmp.b\t$imm, $rd",
+                   [(MSP430cmp GR8:$rd, imm:$imm), (implicit SR)]>;
 def CMP16ri : I16ri<0b1001,
-                    (outs), (ins GR16:$dst, i16imm:$src),
-                    "cmp $src, $dst",
-                    [(MSP430cmp GR16:$dst, imm:$src), (implicit SR)]>;
+                    (outs), (ins GR16:$rd, i16imm:$imm),
+                    "cmp\t$imm, $rd",
+                    [(MSP430cmp GR16:$rd, imm:$imm), (implicit SR)]>;
 
 def CMP8mc  : I8mc<0b1001,
                    (outs), (ins memsrc:$dst, cg8imm:$imm),
-                   "cmp.b $imm, $dst",
+                   "cmp.b\t$imm, $dst",
                    [(MSP430cmp (load addr:$dst), (i8 cg8imm:$imm)),
                     (implicit SR)]>;
 def CMP16mc : I16mc<0b1001,
                     (outs), (ins memsrc:$dst, cg16imm:$imm),
-                    "cmp $imm, $dst",
+                    "cmp\t$imm, $dst",
                     [(MSP430cmp (load addr:$dst), (i16 cg16imm:$imm)),
                      (implicit SR)]>;
 
 def CMP8mi  : I8mi<0b1001,
-                   (outs), (ins memsrc:$dst, i8imm:$src),
-                   "cmp.b $src, $dst",
+                   (outs), (ins memsrc:$dst, i8imm:$imm),
+                   "cmp.b\t$imm, $dst",
                    [(MSP430cmp (load addr:$dst),
-                               (i8 imm:$src)), (implicit SR)]>;
+                               (i8 imm:$imm)), (implicit SR)]>;
 def CMP16mi : I16mi<0b1001,
-                    (outs), (ins memsrc:$dst, i16imm:$src),
-                    "cmp $src, $dst",
+                    (outs), (ins memsrc:$dst, i16imm:$imm),
+                    "cmp\t$imm, $dst",
                      [(MSP430cmp (load addr:$dst),
-                                 (i16 imm:$src)), (implicit SR)]>;
+                                 (i16 imm:$imm)), (implicit SR)]>;
 
 def CMP8rm  : I8rm<0b1001,
-                   (outs), (ins GR8:$dst, memsrc:$src),
-                   "cmp.b $src, $dst",
-                   [(MSP430cmp GR8:$dst, (load addr:$src)), 
+                   (outs), (ins GR8:$rd, memsrc:$src),
+                   "cmp.b\t$src, $rd",
+                   [(MSP430cmp GR8:$rd, (load addr:$src)), 
                     (implicit SR)]>;
 def CMP16rm : I16rm<0b1001,
-                    (outs), (ins GR16:$dst, memsrc:$src),
-                    "cmp $src, $dst",
-                    [(MSP430cmp GR16:$dst, (load addr:$src)),
+                    (outs), (ins GR16:$rd, memsrc:$src),
+                    "cmp\t$src, $rd",
+                    [(MSP430cmp GR16:$rd, (load addr:$src)),
                      (implicit SR)]>;
 
 def CMP8mr  : I8mr<0b1001,
-                   (outs), (ins memsrc:$dst, GR8:$src),
-                   "cmp.b $src, $dst",
-                   [(MSP430cmp (load addr:$dst), GR8:$src),
+                   (outs), (ins memsrc:$dst, GR8:$rs),
+                   "cmp.b\t$rs, $dst",
+                   [(MSP430cmp (load addr:$dst), GR8:$rs),
                     (implicit SR)]>;
 def CMP16mr : I16mr<0b1001,
-                    (outs), (ins memsrc:$dst, GR16:$src),
-                    "cmp $src, $dst",
-                    [(MSP430cmp (load addr:$dst), GR16:$src), 
+                    (outs), (ins memsrc:$dst, GR16:$rs),
+                    "cmp\t$rs, $dst",
+                    [(MSP430cmp (load addr:$dst), GR16:$rs), 
                      (implicit SR)]>;
 
 // BIT TESTS, just sets condition codes
 // Note that the C condition is set differently than when using CMP.
 let isCommutable = 1 in {
 def BIT8rr  : I8rr<0b1011,
-                   (outs), (ins GR8:$dst, GR8:$src),
-                   "bit.b $src, $dst",
-                   [(MSP430cmp (and_su GR8:$dst, GR8:$src), 0),
+                   (outs), (ins GR8:$rd, GR8:$rs),
+                   "bit.b\t$rs, $rd",
+                   [(MSP430cmp (and_su GR8:$rd, GR8:$rs), 0),
                     (implicit SR)]>;
 def BIT16rr : I16rr<0b1011,
-                    (outs), (ins GR16:$dst, GR16:$src),
-                    "bit $src, $dst",
-                    [(MSP430cmp (and_su GR16:$dst, GR16:$src), 0),
+                    (outs), (ins GR16:$rd, GR16:$rs),
+                    "bit\t$rs, $rd",
+                    [(MSP430cmp (and_su GR16:$rd, GR16:$rs), 0),
                      (implicit SR)]>;
 }
 def BIT8ri  : I8ri<0b1011,
-                   (outs), (ins GR8:$dst, i8imm:$src),
-                   "bit.b $src, $dst",
-                   [(MSP430cmp (and_su GR8:$dst, imm:$src), 0),
+                   (outs), (ins GR8:$rd, i8imm:$imm),
+                   "bit.b\t$imm, $rd",
+                   [(MSP430cmp (and_su GR8:$rd, imm:$imm), 0),
                     (implicit SR)]>;
 def BIT16ri : I16ri<0b1011,
-                    (outs), (ins GR16:$dst, i16imm:$src),
-                    "bit $src, $dst",
-                    [(MSP430cmp (and_su GR16:$dst, imm:$src), 0),
+                    (outs), (ins GR16:$rd, i16imm:$imm),
+                    "bit\t$imm, $rd",
+                    [(MSP430cmp (and_su GR16:$rd, imm:$imm), 0),
                      (implicit SR)]>;
 
 def BIT8rm  : I8rm<0b1011,
-                   (outs), (ins GR8:$dst, memdst:$src),
-                   "bit.b $src, $dst",
-                   [(MSP430cmp (and_su GR8:$dst,  (load addr:$src)), 0),
+                   (outs), (ins GR8:$rd, memdst:$src),
+                   "bit.b\t$src, $rd",
+                   [(MSP430cmp (and_su GR8:$rd,  (load addr:$src)), 0),
                     (implicit SR)]>;
 def BIT16rm : I16rm<0b1011,
-                    (outs), (ins GR16:$dst, memdst:$src),
-                    "bit $src, $dst",
-                    [(MSP430cmp (and_su GR16:$dst,  (load addr:$src)), 0),
+                    (outs), (ins GR16:$rd, memdst:$src),
+                    "bit\t$src, $rd",
+                    [(MSP430cmp (and_su GR16:$rd,  (load addr:$src)), 0),
                      (implicit SR)]>;
 
 def BIT8mr  : I8mr<0b1011,
-                  (outs), (ins memsrc:$dst, GR8:$src),
-                  "bit.b $src, $dst",
-                  [(MSP430cmp (and_su (load addr:$dst), GR8:$src), 0),
+                  (outs), (ins memsrc:$dst, GR8:$rs),
+                  "bit.b\t$rs, $dst",
+                  [(MSP430cmp (and_su (load addr:$dst), GR8:$rs), 0),
                    (implicit SR)]>;
 def BIT16mr : I16mr<0b1011,
-                    (outs), (ins memsrc:$dst, GR16:$src),
-                    "bit $src, $dst",
-                    [(MSP430cmp (and_su (load addr:$dst), GR16:$src), 0),
+                    (outs), (ins memsrc:$dst, GR16:$rs),
+                    "bit\t$rs, $dst",
+                    [(MSP430cmp (and_su (load addr:$dst), GR16:$rs), 0),
                      (implicit SR)]>;
 
 def BIT8mi  : I8mi<0b1011,
-                   (outs), (ins memsrc:$dst, i8imm:$src),
-                   "bit.b $src, $dst",
-                   [(MSP430cmp (and_su (load addr:$dst), (i8 imm:$src)), 0),
+                   (outs), (ins memsrc:$dst, i8imm:$imm),
+                   "bit.b\t$imm, $dst",
+                   [(MSP430cmp (and_su (load addr:$dst), (i8 imm:$imm)), 0),
                     (implicit SR)]>;
 def BIT16mi : I16mi<0b1011,
-                    (outs), (ins memsrc:$dst, i16imm:$src),
-                    "bit $src, $dst",
-                    [(MSP430cmp (and_su (load addr:$dst), (i16 imm:$src)), 0),
+                    (outs), (ins memsrc:$dst, i16imm:$imm),
+                    "bit\t$imm, $dst",
+                    [(MSP430cmp (and_su (load addr:$dst), (i16 imm:$imm)), 0),
                      (implicit SR)]>;
 
 def BIT8mm  : I8mm<0b1011,
                    (outs), (ins memsrc:$dst, memsrc:$src),
-                   "bit.b $src, $dst",
+                   "bit.b\t$src, $dst",
                    [(MSP430cmp (and_su (i8 (load addr:$dst)),
                                        (load addr:$src)),
                                  0),
                       (implicit SR)]>;
 def BIT16mm : I16mm<0b1011,
                     (outs), (ins memsrc:$dst, memsrc:$src),
-                    "bit $src, $dst",
+                    "bit\t$src, $dst",
                     [(MSP430cmp (and_su (i16 (load addr:$dst)),
                                         (load addr:$src)),
                                  0),

@@ -110,7 +110,7 @@ unsigned MSP430MCCodeEmitter::getMachineOpValue(const MCInst &MI,
 
   if (MO.isImm()) {
     Offset += 2;
-    return MO.getImm() << 4;
+    return MO.getImm();
   }
 
   assert(MO.isExpr() && "Expected expr operand");

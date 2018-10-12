@@ -138,6 +138,7 @@ def cg8imm : Operand<i8>,
                                   Imm == 4 || Imm == 8 || Imm == -1;}]> {
   let ParserMatchClass = CGImmAsmOperand;
   let EncoderMethod = "getCGImmOpValue";
+  let DecoderMethod = "DecodeCGImm";
 }
 
 def cg16imm : Operand<i16>,
@@ -145,6 +146,7 @@ def cg16imm : Operand<i16>,
                                     Imm == 4 || Imm == 8 || Imm == -1;}]> {
   let ParserMatchClass = CGImmAsmOperand;
   let EncoderMethod = "getCGImmOpValue";
+  let DecoderMethod = "DecodeCGImm";
 }
 
 //===----------------------------------------------------------------------===//
@@ -225,6 +227,7 @@ let isCodeGenOnly = 1, usesCustomInserter = 1 in {
 let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
   def RET  : IForm16<0b0100, DstReg, SrcPostInc, 2,
                      (outs), (ins), "ret",  [(MSP430retflag)]> {
+    let DecoderNamespace = "Delta";
     let rs = 1;
     let rd = 0;
   }
@@ -295,6 +298,7 @@ let Defs = [SP], Uses = [SP], hasSideEffects=0 in {
 let mayLoad = 1 in
 def POP16r   : IForm16<0b0100, DstReg, SrcPostInc, 2,
                        (outs GR16:$rd), (ins), "pop\t$rd", []> {
+  let DecoderNamespace = "Delta";
   let rs = 1;
 }
 

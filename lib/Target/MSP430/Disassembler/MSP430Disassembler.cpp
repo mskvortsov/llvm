@@ -104,17 +104,37 @@ static DecodeStatus DecodeGR16RegisterClass(MCInst &MI, uint64_t RegNo,
   return MCDisassembler::Success;
 }
 
-static DecodeStatus DecodeMemOperand(MCInst &MI, uint64_t Insn,
+static DecodeStatus DecodeCGImm(MCInst &MI, uint64_t Bits, uint64_t Address,
+                                const void *Decoder);
+
+static DecodeStatus DecodeMemOperand(MCInst &MI, uint64_t Bits,
                                      uint64_t Address,
                                      const void *Decoder);
 
 #include "MSP430GenDisassemblerTables.inc"
 
-static DecodeStatus DecodeMemOperand(MCInst &MI, uint64_t Src,
+static DecodeStatus DecodeCGImm(MCInst &MI, uint64_t Bits, uint64_t Address,
+                                const void *Decoder) {
+  int64_t Imm;
+  switch (Bits) {
+  default:
+    llvm_unreachable("Invalid immediate value");
+  case 0x22: Imm =  4; break;
+  case 0x32: Imm =  8; break;
+  case 0x03: Imm =  0; break;
+  case 0x13: Imm =  1; break;
+  case 0x23: Imm =  2; break;
+  case 0x33: Imm = -1; break;
+  }
+  MI.addOperand(MCOperand::createImm(Imm));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeMemOperand(MCInst &MI, uint64_t Bits,
                                      uint64_t Address,
                                      const void *Decoder) {
-  unsigned Reg = Src & 15;
-  unsigned Imm = Src >> 4;
+  unsigned Reg = Bits & 15;
+  unsigned Imm = Bits >> 4;
 
   if (DecodeGR16RegisterClass(MI, Reg, Address, Decoder) !=
       MCDisassembler::Success)
@@ -181,7 +201,6 @@ static AddrMode DecodeDstAddrMode(unsigned Insn) {
   switch (Rd) {
   case 0: return Ad ? amSymbolic : amRegister;
   case 2: return Ad ? amAbsolute : amRegister;
-  case 3: return amInvalid;
   default:
     break;
   }

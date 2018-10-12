@@ -50,29 +50,20 @@ unsigned MSP430ELFObjectWriter::getRelocType(MCContext &Ctx,
                                             const MCFixup &Fixup,
                                             bool IsPCRel) const {
   switch ((unsigned) Fixup.getKind()) {
-  case MSP430::fixup_32:
-    return ELF::R_MSP430_32;
-  case MSP430::fixup_10_pcrel:
-    return ELF::R_MSP430_10_PCREL;
-  case MSP430::fixup_16:
-    return ELF::R_MSP430_16;
-  case MSP430::fixup_16_pcrel:
-    return ELF::R_MSP430_16_PCREL;
-  case MSP430::fixup_16_byte:
-    return ELF::R_MSP430_16_BYTE;
-  case MSP430::fixup_16_pcrel_byte:
-    return ELF::R_MSP430_16_PCREL_BYTE;
-  case MSP430::fixup_2x_pcrel:
-    return ELF::R_MSP430_2X_PCREL;
-  case MSP430::fixup_rl_pcrel:
-    return ELF::R_MSP430_RL_PCREL;
-  case MSP430::fixup_8:
-    return ELF::R_MSP430_8;
-  case MSP430::fixup_sym_diff:
-    return ELF::R_MSP430_SYM_DIFF;
+  case FK_Data_2:                   return ELF::R_MSP430_16;
+  case FK_Data_4:                   return ELF::R_MSP430_32;
+  case MSP430::fixup_32:            return ELF::R_MSP430_32;
+  case MSP430::fixup_10_pcrel:      return ELF::R_MSP430_10_PCREL;
+  case MSP430::fixup_16:            return ELF::R_MSP430_16;
+  case MSP430::fixup_16_pcrel:      return ELF::R_MSP430_16_PCREL;
+  case MSP430::fixup_16_byte:       return ELF::R_MSP430_16_BYTE;
+  case MSP430::fixup_16_pcrel_byte: return ELF::R_MSP430_16_PCREL_BYTE;
+  case MSP430::fixup_2x_pcrel:      return ELF::R_MSP430_2X_PCREL;
+  case MSP430::fixup_rl_pcrel:      return ELF::R_MSP430_RL_PCREL;
+  case MSP430::fixup_8:             return ELF::R_MSP430_8;
+  case MSP430::fixup_sym_diff:      return ELF::R_MSP430_SYM_DIFF;
   default:
-    fprintf(stderr, "Fixup kind %d\n", Fixup.getKind());
-    llvm_unreachable("invalid fixup kind!");
+    llvm_unreachable("Invalid fixup kind");
   }
 }
 

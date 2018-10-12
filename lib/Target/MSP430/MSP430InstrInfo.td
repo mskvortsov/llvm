@@ -251,9 +251,9 @@ let isBarrier = 1 in {
   }
   let isIndirectBranch = 1, rd = 0 in {
     // Long branches
-    def Bi  : I16ri<0b0100, (outs), (ins i16imm:$src),
-                    "br\t$src",
-                    [(brind tblockaddress:$src)]>;
+    def Bi  : I16ri<0b0100, (outs), (ins i16imm:$imm),
+                    "br\t$imm",
+                    [(brind tblockaddress:$imm)]>;
     def Br  : I16rr<0b0100, (outs), (ins GR16:$rs),
                     "br\t$rs",
                     [(brind GR16:$rs)]>;
@@ -335,9 +335,9 @@ def MOV16rc : I16rc<0b0100,
                     "mov\t$imm, $rd",
                     [(set GR16:$rd, cg16imm:$imm)]>;
 def MOV8ri  : I8ri<0b0100,
-                   (outs GR8:$rd), (ins i8imm:$src),
-                   "mov.b\t{$src, $rd}",
-                   [(set GR8:$rd, imm:$src)]>;
+                   (outs GR8:$rd), (ins i8imm:$imm),
+                   "mov.b\t{$imm, $rd}",
+                   [(set GR8:$rd, imm:$imm)]>;
 def MOV16ri : I16ri<0b0100,
                     (outs GR16:$rd), (ins i16imm:$imm),
                     "mov\t{$imm, $rd}",

@@ -39,10 +39,6 @@ public:
   uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
                             MCContext &Ctx) const;
 
-  bool requiresDiffExpressionRelocations() const override {
-    return false;
-  }
-
   void applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
                   const MCValue &Target, MutableArrayRef<char> Data,
                   uint64_t Value, bool IsResolved,
@@ -51,11 +47,6 @@ public:
   std::unique_ptr<MCObjectTargetWriter>
   createObjectTargetWriter() const override {
     return createMSP430ELFObjectWriter(OSABI);
-  }
-
-  bool shouldForceRelocation(const MCAssembler &Asm, const MCFixup &Fixup,
-                             const MCValue &Target) override {
-    return false;
   }
 
   bool fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value,

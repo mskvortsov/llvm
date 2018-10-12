@@ -22,16 +22,11 @@ using namespace llvm;
 namespace {
 class MSP430ELFObjectWriter : public MCELFObjectTargetWriter {
 public:
-  MSP430ELFObjectWriter(uint8_t OSABI);
+  MSP430ELFObjectWriter(uint8_t OSABI)
+    : MCELFObjectTargetWriter(false, OSABI, ELF::EM_MSP430,
+                              /*HasRelocationAddend*/ true) {}
 
-  ~MSP430ELFObjectWriter() override;
-
-  // Return true if the given relocation must be with a symbol rather than
-  // section plus offset.
-  bool needsRelocateWithSymbol(const MCSymbol &Sym,
-                               unsigned Type) const override {
-    return true;
-  }
+  ~MSP430ELFObjectWriter() override {}
 
 protected:
   unsigned getRelocType(MCContext &Ctx, const MCValue &Target,
@@ -39,17 +34,12 @@ protected:
 };
 }
 
-MSP430ELFObjectWriter::MSP430ELFObjectWriter(uint8_t OSABI)
-    : MCELFObjectTargetWriter(false, OSABI, ELF::EM_MSP430,
-                              /*HasRelocationAddend*/ true) {}
-
-MSP430ELFObjectWriter::~MSP430ELFObjectWriter() {}
-
 unsigned MSP430ELFObjectWriter::getRelocType(MCContext &Ctx,
-                                            const MCValue &Target,
-                                            const MCFixup &Fixup,
-                                            bool IsPCRel) const {
-  switch ((unsigned) Fixup.getKind()) {
+                                             const MCValue &Target,
+                                             const MCFixup &Fixup,
+                                             bool IsPCRel) const {
+  // Translate fixup kind to ELF relocation type.
+  switch ((unsigned)Fixup.getKind()) {
   case FK_Data_2:                   return ELF::R_MSP430_16;
   case FK_Data_4:                   return ELF::R_MSP430_32;
   case MSP430::fixup_32:            return ELF::R_MSP430_32;

@@ -69,8 +69,7 @@ def MSP430InstrInfo : InstrInfo;
 //===---------------------------------------------------------------------===//
 
 def MSP430AsmWriter : AsmWriter {
- string AsmWriterClassName = "InstPrinter";
- bit isMCAsmWriter = 1;
+  string AsmWriterClassName = "InstPrinter";
 }
 
 //===---------------------------------------------------------------------===//
@@ -82,19 +81,12 @@ def MSP430AsmParser : AsmParser {
   let ShouldEmitMatchRegisterAltName = 1;
 }
 
-def MSP430AsmParserVariant : AsmParserVariant {
-  int Variant = 0;
-  string TokenizingCharacters = "+";
-}
-
 //===----------------------------------------------------------------------===//
 // Target Declaration
 //===----------------------------------------------------------------------===//
 
 def MSP430 : Target {
   let InstructionSet = MSP430InstrInfo;
-
-  let AssemblyParsers        = [MSP430AsmParser];
-  let AssemblyParserVariants = [MSP430AsmParserVariant];
+  let AssemblyParsers = [MSP430AsmParser];
 }
 

@@ -15,7 +15,7 @@ entry:
   %i.addr = alloca i16, align 2
   store i16 %i, i16* %i.addr, align 2
   %0 = load i16, i16* %i.addr, align 2
-; CHECK:      add r12
+; CHECK:      add   r12, r12
 ; CHECK-NEXT: br .LJTI0_0(r12)
   switch i16 %0, label %sw.default [
     i16 0, label %sw.bb

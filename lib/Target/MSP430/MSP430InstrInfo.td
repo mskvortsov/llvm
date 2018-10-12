@@ -294,7 +294,7 @@ let isCall = 1,
 //===----------------------------------------------------------------------===//
 //  Miscellaneous Instructions...
 //
-let Defs = [SP], Uses = [SP], hasSideEffects=0 in {
+let Defs = [SP], Uses = [SP], hasSideEffects = 0 in {
 let mayLoad = 1 in
 def POP16r   : IForm16<0b0100, DstReg, SrcPostInc, 2,
                        (outs GR16:$rd), (ins), "pop\t$rd", []> {
@@ -543,69 +543,68 @@ defm SUB  : Arith<0b1000, "sub",  sub,  0, []>;
 defm SUBC : Arith<0b0111, "subc", sube, 0, [SR]>;
 defm DADD : Arith<0b1010, "dadd", MSP430dadd, 1, [SR]>;
 
-def ADC8r   : InstAlias<"adc.b $dst",  (ADDC8rc   GR8:$dst,     0)>;
-def ADC16r  : InstAlias<"adc $dst",    (ADDC16rc  GR16:$dst,    0)>;
-def ADC8m   : InstAlias<"adc.b $dst",  (ADDC8mc   memdst:$dst,  0)>;
-def ADC16m  : InstAlias<"adc $dst",    (ADDC16mc  memdst:$dst,  0)>;
+def ADC8r   : InstAlias<"adc.b\t$dst",  (ADDC8rc   GR8:$dst,     0)>;
+def ADC16r  : InstAlias<"adc\t$dst",    (ADDC16rc  GR16:$dst,    0)>;
+def ADC8m   : InstAlias<"adc.b\t$dst",  (ADDC8mc   memdst:$dst,  0)>;
+def ADC16m  : InstAlias<"adc\t$dst",    (ADDC16mc  memdst:$dst,  0)>;
 
-def DADC8r  : InstAlias<"dadc.b $dst", (DADD8rc   GR8:$dst,     0)>;
-def DADC16r : InstAlias<"dadc $dst",   (DADD16rc  GR16:$dst,    0)>;
-def DADC8m  : InstAlias<"dadc.b $dst", (DADD8mc   memdst:$dst,  0)>;
-def DADC16m : InstAlias<"dadc $dst",   (DADD16mc  memdst:$dst,  0)>;
+def DADC8r  : InstAlias<"dadc.b\t$dst", (DADD8rc   GR8:$dst,     0)>;
+def DADC16r : InstAlias<"dadc\t$dst",   (DADD16rc  GR16:$dst,    0)>;
+def DADC8m  : InstAlias<"dadc.b\t$dst", (DADD8mc   memdst:$dst,  0)>;
+def DADC16m : InstAlias<"dadc\t$dst",   (DADD16mc  memdst:$dst,  0)>;
 
-def DEC8r   : InstAlias<"dec.b $dst",  (SUB8rc    GR8:$dst,     1)>;
-def DEC16r  : InstAlias<"dec $dst",    (SUB16rc   GR16:$dst,    1)>;
-def DEC8m   : InstAlias<"dec.b $dst",  (SUB8mc    memdst:$dst,  1)>;
-def DEC16m  : InstAlias<"dec $dst",    (SUB16mc   memdst:$dst,  1)>;
+def DEC8r   : InstAlias<"dec.b\t$dst",  (SUB8rc    GR8:$dst,     1)>;
+def DEC16r  : InstAlias<"dec\t$dst",    (SUB16rc   GR16:$dst,    1)>;
+def DEC8m   : InstAlias<"dec.b\t$dst",  (SUB8mc    memdst:$dst,  1)>;
+def DEC16m  : InstAlias<"dec\t$dst",    (SUB16mc   memdst:$dst,  1)>;
 
-def DECD8r  : InstAlias<"decd.b $dst", (SUB8rc    GR8:$dst,     2)>;
-def DECD16r : InstAlias<"decd $dst",   (SUB16rc   GR16:$dst,    2)>;
-def DECD8m  : InstAlias<"decd.b $dst", (SUB8mc    memdst:$dst,  2)>;
-def DECD16m : InstAlias<"decd $dst",   (SUB16mc   memdst:$dst,  2)>;
+def DECD8r  : InstAlias<"decd.b\t$dst", (SUB8rc    GR8:$dst,     2)>;
+def DECD16r : InstAlias<"decd\t$dst",   (SUB16rc   GR16:$dst,    2)>;
+def DECD8m  : InstAlias<"decd.b\t$dst", (SUB8mc    memdst:$dst,  2)>;
+def DECD16m : InstAlias<"decd\t$dst",   (SUB16mc   memdst:$dst,  2)>;
 
-def INC8r   : InstAlias<"inc.b $dst",  (ADD8rc    GR8:$dst,     1)>;
-def INC16r  : InstAlias<"inc $dst",    (ADD16rc   GR16:$dst,    1)>;
-def INC8m   : InstAlias<"inc.b $dst",  (ADD8mc    memdst:$dst,  1)>;
-def INC16m  : InstAlias<"inc $dst",    (ADD16mc   memdst:$dst,  1)>;
+def INC8r   : InstAlias<"inc.b\t$dst",  (ADD8rc    GR8:$dst,     1)>;
+def INC16r  : InstAlias<"inc\t$dst",    (ADD16rc   GR16:$dst,    1)>;
+def INC8m   : InstAlias<"inc.b\t$dst",  (ADD8mc    memdst:$dst,  1)>;
+def INC16m  : InstAlias<"inc\t$dst",    (ADD16mc   memdst:$dst,  1)>;
 
-def INCD8r  : InstAlias<"incd.b $dst", (ADD8rc    GR8:$dst,     2)>;
-def INCD16r : InstAlias<"incd $dst",   (ADD16rc   GR16:$dst,    2)>;
-def INCD8m  : InstAlias<"incd.b $dst", (ADD8mc    memdst:$dst,  2)>;
-def INCD16m : InstAlias<"incd $dst",   (ADD16mc   memdst:$dst,  2)>;
+def INCD8r  : InstAlias<"incd.b\t$dst", (ADD8rc    GR8:$dst,     2)>;
+def INCD16r : InstAlias<"incd\t$dst",   (ADD16rc   GR16:$dst,    2)>;
+def INCD8m  : InstAlias<"incd.b\t$dst", (ADD8mc    memdst:$dst,  2)>;
+def INCD16m : InstAlias<"incd\t$dst",   (ADD16mc   memdst:$dst,  2)>;
 
-def SBC8r   : InstAlias<"sbc.b $dst",  (SUBC8rc   GR8:$dst,     0)>;
-def SBC16r  : InstAlias<"sbc $dst",    (SUBC16rc  GR16:$dst,    0)>;
-def SBC8m   : InstAlias<"sbc.b $dst",  (SUBC8mc   memdst:$dst,  0)>;
-def SBC16m  : InstAlias<"sbc $dst",    (SUBC16mc  memdst:$dst,  0)>;
+def SBC8r   : InstAlias<"sbc.b\t$dst",  (SUBC8rc   GR8:$dst,     0)>;
+def SBC16r  : InstAlias<"sbc\t$dst",    (SUBC16rc  GR16:$dst,    0)>;
+def SBC8m   : InstAlias<"sbc.b\t$dst",  (SUBC8mc   memdst:$dst,  0)>;
+def SBC16m  : InstAlias<"sbc\t$dst",    (SUBC16mc  memdst:$dst,  0)>;
 
-def INV8r   : InstAlias<"inv.b $dst",  (XOR8rc    GR8:$dst,    -1)>;
-def INV16r  : InstAlias<"inv $dst",    (XOR16rc   GR16:$dst,   -1)>;
-def INV8m   : InstAlias<"inv.b $dst",  (XOR8mc    memdst:$dst, -1)>;
-def INV16m  : InstAlias<"inv $dst",    (XOR16mc   memdst:$dst, -1)>;
+def INV8r   : InstAlias<"inv.b\t$dst",  (XOR8rc    GR8:$dst,    -1)>;
+def INV16r  : InstAlias<"inv\t$dst",    (XOR16rc   GR16:$dst,   -1)>;
+def INV8m   : InstAlias<"inv.b\t$dst",  (XOR8mc    memdst:$dst, -1)>;
+def INV16m  : InstAlias<"inv\t$dst",    (XOR16mc   memdst:$dst, -1)>;
 
-def RLA8r   : InstAlias<"rla.b $dst",  (ADD8rr    GR8:$dst,     GR8:$dst)>;
-def RLA16r  : InstAlias<"rla $dst",    (ADD16rr   GR16:$dst,    GR16:$dst)>;
-def RLA8m   : InstAlias<"rla.b $dst",  (ADD8mm    memdst:$dst,  memdst:$dst)>;
-def RLA16m  : InstAlias<"rla $dst",    (ADD16mm   memdst:$dst,  memdst:$dst)>;
+// printAliasInstr() doesn't check $dst operands are actually equal
+// for RLA and RLC aliases below, so disable printing aliases.
 
-def RLC8r   : InstAlias<"rlc.b $dst",  (ADDC8rr   GR8:$dst,     GR8:$dst)>;
-def RLC16r  : InstAlias<"rlc $dst",    (ADDC16rr  GR16:$dst,    GR16:$dst)>;
-def RLC8m   : InstAlias<"rlc.b $dst",  (ADDC8mm   memdst:$dst,  memdst:$dst)>;
-def RLC16m  : InstAlias<"rlc $dst",    (ADDC16mm  memdst:$dst,  memdst:$dst)>;
+def RLA8r   : InstAlias<"rla.b\t$dst",  (ADD8rr    GR8:$dst,     GR8:$dst),    0>;
+def RLA16r  : InstAlias<"rla\t$dst",    (ADD16rr   GR16:$dst,    GR16:$dst),   0>;
+def RLA8m   : InstAlias<"rla.b\t$dst",  (ADD8mm    memdst:$dst,  memdst:$dst), 0>;
+def RLA16m  : InstAlias<"rla\t$dst",    (ADD16mm   memdst:$dst,  memdst:$dst), 0>;
 
-// TODO br?
+def RLC8r   : InstAlias<"rlc.b\t$dst",  (ADDC8rr   GR8:$dst,     GR8:$dst),    0>;
+def RLC16r  : InstAlias<"rlc\t$dst",    (ADDC16rr  GR16:$dst,    GR16:$dst),   0>;
+def RLC8m   : InstAlias<"rlc.b\t$dst",  (ADDC8mm   memdst:$dst,  memdst:$dst), 0>;
+def RLC16m  : InstAlias<"rlc\t$dst",    (ADDC16mm  memdst:$dst,  memdst:$dst), 0>;
 
 def DINT : InstAlias<"dint", (BIC16rc SR, 8)>;
 def EINT : InstAlias<"eint", (BIS16rc SR, 8)>;
 
 def NOP  : InstAlias<"nop",  (MOV16rc CG, 0)>;
 
-// TODO ret?
-
-def CLR8r   : InstAlias<"clr.b $dst",  (MOV8rc    GR8:$dst,     0)>;
-def CLR16r  : InstAlias<"clr $dst",    (MOV16rc   GR16:$dst,    0)>;
-def CLR8m   : InstAlias<"clr.b $dst",  (MOV8mc    memdst:$dst,  0)>;
-def CLR16m  : InstAlias<"clr $dst",    (MOV16mc   memdst:$dst,  0)>;
+def CLR8r   : InstAlias<"clr.b\t$dst",  (MOV8rc    GR8:$dst,     0)>;
+def CLR16r  : InstAlias<"clr\t$dst",    (MOV16rc   GR16:$dst,    0)>;
+def CLR8m   : InstAlias<"clr.b\t$dst",  (MOV8mc    memdst:$dst,  0)>;
+def CLR16m  : InstAlias<"clr\t$dst",    (MOV16mc   memdst:$dst,  0)>;
 
 def CLRC : InstAlias<"clrc", (BIC16rc SR, 1)>;
 def CLRN : InstAlias<"clrn", (BIC16rc SR, 4)>;
@@ -613,8 +612,6 @@ def CLRZ : InstAlias<"clrz", (BIC16rc SR, 2)>;
 def SETC : InstAlias<"setc", (BIS16rc SR, 1)>;
 def SETN : InstAlias<"setn", (BIS16rc SR, 4)>;
 def SETZ : InstAlias<"setz", (BIS16rc SR, 2)>;
-
-// TODO pop?
 
 def : Pat<(MSP430rla GR8:$dst),  (ADD8rr  $dst, $dst)>;
 def : Pat<(MSP430rla GR16:$dst), (ADD16rr $dst, $dst)>;
@@ -818,10 +815,10 @@ def BIT16mm : I16mm<0b1011,
                      (implicit SR)]>;
 } // Defs = [SR]
 
-def TST8r   : InstAlias<"tst.b $dst",  (CMP8rc    GR8:$dst,     0)>;
-def TST16r  : InstAlias<"tst $dst",    (CMP16rc   GR16:$dst,    0)>;
-def TST8m   : InstAlias<"tst.b $dst",  (CMP8mc    memdst:$dst,  0)>;
-def TST16m  : InstAlias<"tst $dst",    (CMP16mc   memdst:$dst,  0)>;
+def TST8r   : InstAlias<"tst.b\t$dst",  (CMP8rc    GR8:$dst,     0)>;
+def TST16r  : InstAlias<"tst\t$dst",    (CMP16rc   GR16:$dst,    0)>;
+def TST8m   : InstAlias<"tst.b\t$dst",  (CMP8mc    memdst:$dst,  0)>;
+def TST16m  : InstAlias<"tst\t$dst",    (CMP16mc   memdst:$dst,  0)>;
 
 //===----------------------------------------------------------------------===//
 // Non-Instruction Patterns

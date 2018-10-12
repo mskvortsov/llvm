@@ -27,7 +27,7 @@ entry:
   %vl.addr = alloca i8*, align 2
   store i8* %vl, i8** %vl.addr, align 2
 ; CHECK: mov r12, [[REG:r[0-9]+]]
-; CHECK-NEXT: add #2, [[REG]]
+; CHECK-NEXT: incd [[REG]]
 ; CHECK-NEXT: mov [[REG]], 0(r1)
   %0 = va_arg i8** %vl.addr, i16
 ; CHECK-NEXT: mov 0(r12), r12

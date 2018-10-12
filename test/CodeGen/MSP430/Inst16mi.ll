@@ -13,7 +13,7 @@ define void @mov() nounwind {
 
 define void @add() nounwind {
 ; CHECK-LABEL: add:
-; CHECK: add	#2, &foo
+; CHECK: incd	&foo
 	%1 = load i16, i16* @foo
 	%2 = add i16 %1, 2
 	store i16 %2, i16 * @foo

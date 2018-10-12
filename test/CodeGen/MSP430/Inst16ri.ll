@@ -10,7 +10,7 @@ define i16 @mov() nounwind {
 
 define i16 @add(i16 %a, i16 %b) nounwind {
 ; CHECK-LABEL: add:
-; CHECK: add	#1, r12
+; CHECK: inc	r12
 	%1 = add i16 %a, 1
 	ret i16 %1
 }

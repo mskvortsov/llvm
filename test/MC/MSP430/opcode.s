@@ -107,23 +107,23 @@
                 ; CHECK: encoding: [0xfe,0x3f]
 
   ;; Emulated arithmetic instructions
-  adc    r7     ; CHECK-INST: addc   #0, r7
+  adc    r7     ; CHECK-INST: adc    r7
                 ; CHECK: encoding: [0x07,0x63]
-  dadc   r7     ; CHECK-INST: dadd   #0, r7
+  dadc   r7     ; CHECK-INST: dadc   r7
                 ; CHECK: encoding: [0x07,0xa3]
-  dec    r7     ; CHECK-INST: sub    #1, r7
+  dec    r7     ; CHECK-INST: dec    r7
                 ; CHECK: encoding: [0x17,0x83]
-  decd   r7     ; CHECK-INST: sub    #2, r7
+  decd   r7     ; CHECK-INST: decd   r7
                 ; CHECK: encoding: [0x27,0x83]
-  inc    r7     ; CHECK-INST: add    #1, r7
+  inc    r7     ; CHECK-INST: inc    r7
                 ; CHECK: encoding: [0x17,0x53]
-  incd   r7     ; CHECK-INST: add    #2, r7
+  incd   r7     ; CHECK-INST: incd   r7
                 ; CHECK: encoding: [0x27,0x53]
-  sbc    r7     ; CHECK-INST: subc   #0, r7
+  sbc    r7     ; CHECK-INST: sbc    r7
                 ; CHECK: encoding: [0x07,0x73]
 
   ;; Emulated logical instructions
-  inv    r7     ; CHECK-INST: xor   #-1, r7
+  inv    r7     ; CHECK-INST: inv    r7
                 ; CHECK: encoding: [0x37,0xe3]
   rla    r7     ; CHECK-INST: add    r7, r7
                 ; CHECK: encoding: [0x07,0x57]
@@ -133,31 +133,31 @@
   ;; Emulated program flow control instructions
   br     r7     ; CHECK-INST: br     r7    
                 ; CHECK: encoding: [0x00,0x47]
-  dint          ; CHECK-INST: bic    #8, r2
+  dint          ; CHECK-INST: dint
                 ; CHECK: encoding: [0x32,0xc2]
-  eint          ; CHECK-INST: bis    #8, r2
+  eint          ; CHECK-INST: eint
                 ; CHECK: encoding: [0x32,0xd2]
-  nop           ; CHECK-INST: mov    #0, r3
+  nop           ; CHECK-INST: nop
                 ; CHECK: encoding: [0x03,0x43]
   ret           ; CHECK-INST: ret          
                 ; CHECK: encoding: [0x30,0x41]
 
   ;; Emulated data instruction
-  clr    r7     ; CHECK-INST: mov    #0, r7
+  clr    r7     ; CHECK-INST: clr    r7
                 ; CHECK: encoding: [0x07,0x43]
-  clrc          ; CHECK-INST: bic    #1, r2
+  clrc          ; CHECK-INST: clrc
                 ; CHECK: encoding: [0x12,0xc3]
-  clrn          ; CHECK-INST: bic    #4, r2
+  clrn          ; CHECK-INST: clrn
                 ; CHECK: encoding: [0x22,0xc2]
-  clrz          ; CHECK-INST: bic    #2, r2
+  clrz          ; CHECK-INST: clrz
                 ; CHECK: encoding: [0x22,0xc3]
-  pop    r7     ; CHECK-INST: pop    r7    
+  pop    r7     ; CHECK-INST: pop    r7
                 ; CHECK: encoding: [0x37,0x41]
-  setc          ; CHECK-INST: bis    #1, r2
+  setc          ; CHECK-INST: setc
                 ; CHECK: encoding: [0x12,0xd3]
-  setn          ; CHECK-INST: bis    #4, r2
+  setn          ; CHECK-INST: setn
                 ; CHECK: encoding: [0x22,0xd2]
-  setz          ; CHECK-INST: bis    #2, r2
+  setz          ; CHECK-INST: setz
                 ; CHECK: encoding: [0x22,0xd3]
-  tst    r7     ; CHECK-INST: cmp    #0, r7
+  tst    r7     ; CHECK-INST: tst    r7
                 ; CHECK: encoding: [0x07,0x93]

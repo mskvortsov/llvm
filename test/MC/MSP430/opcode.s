@@ -2,8 +2,7 @@
 ; RUN:     | FileCheck -check-prefixes=CHECK,CHECK-INST %s
 
 ; RUN: llvm-mc -triple msp430 -filetype=obj %s \
-; RUN:     | llvm-objdump -triple msp430 -d - \
-; RUN:     | FileCheck -check-prefix=CHECK-INST %s
+; RUN:     | llvm-objdump -d - | FileCheck -check-prefix=CHECK-INST %s
 
   ;; IForm8 instructions
   mov.b  r7, r8 ; CHECK-INST: mov.b  r7, r8

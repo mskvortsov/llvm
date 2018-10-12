@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "MSP430.h"
 #include "MCTargetDesc/MSP430MCTargetDesc.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCDisassembler/MCDisassembler.h"
@@ -293,12 +294,41 @@ DecodeStatus MSP430Disassembler::getInstructionII(MCInst &MI, uint64_t &Size,
   return DecodeStatus::Fail;
 }
 
+static MSP430CC::CondCodes getCondCode(unsigned Cond) {
+  switch (Cond) {
+  case 0: return MSP430CC::COND_NE;
+  case 1: return MSP430CC::COND_E;
+  case 2: return MSP430CC::COND_LO;
+  case 3: return MSP430CC::COND_HS;
+  case 4: return MSP430CC::COND_N;
+  case 5: return MSP430CC::COND_GE;
+  case 6: return MSP430CC::COND_L;
+  case 7: return MSP430CC::COND_INVALID;
+  default:
+    llvm_unreachable("Cond out of range");
+  }
+}
+
 DecodeStatus MSP430Disassembler::getInstructionCJ(MCInst &MI, uint64_t &Size,
                                                   ArrayRef<uint8_t> Bytes,
                                                   uint64_t Address,
                                                   raw_ostream &VStream,
                                                   raw_ostream &CStream) const {
-  return DecodeStatus::Fail;
+  uint64_t Insn = support::endian::read16le(Bytes.data());
+  unsigned Cond = fieldFromInstruction(Insn, 10, 3);
+  unsigned Offset = fieldFromInstruction(Insn, 0, 10);
+
+  MI.addOperand(MCOperand::createImm(SignExtend32(Offset, 10)));
+
+  if (Cond == 7)
+    MI.setOpcode(MSP430::JMP);
+  else {
+    MI.setOpcode(MSP430::JCC);
+    MI.addOperand(MCOperand::createImm(getCondCode(Cond)));
+  }
+
+  Size = 2;
+  return DecodeStatus::Success;
 }
 
 DecodeStatus MSP430Disassembler::getInstruction(MCInst &MI, uint64_t &Size,

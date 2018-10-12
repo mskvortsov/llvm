@@ -81,6 +81,7 @@ def memsrc : Operand<i16> {
   let MIOperandInfo = (ops GR16, i16imm);
   let ParserMatchClass = MemAsmOperand;
   let EncoderMethod = "getMemOperandValue";
+  let DecoderMethod = "DecodeMemOperand";
 }
 
 def memdst : Operand<i16> {
@@ -88,6 +89,7 @@ def memdst : Operand<i16> {
   let MIOperandInfo = (ops GR16, i16imm);
   let ParserMatchClass = MemAsmOperand;
   let EncoderMethod = "getMemOperandValue";
+  let DecoderMethod = "DecodeMemOperand";
 }
 
 def IndRegAsmOperand : AsmOperandClass {

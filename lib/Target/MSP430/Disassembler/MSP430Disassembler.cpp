@@ -103,7 +103,25 @@ static DecodeStatus DecodeGR16RegisterClass(MCInst &MI, uint64_t RegNo,
   return MCDisassembler::Success;
 }
 
+static DecodeStatus DecodeMemOperand(MCInst &MI, uint64_t Insn,
+                                     uint64_t Address,
+                                     const void *Decoder);
+
 #include "MSP430GenDisassemblerTables.inc"
+
+static DecodeStatus DecodeMemOperand(MCInst &MI, uint64_t Src,
+                                     uint64_t Address,
+                                     const void *Decoder) {
+  unsigned Reg = Src & 15;
+  unsigned Imm = Src >> 4;
+
+  if (DecodeGR16RegisterClass(MI, Reg, Address, Decoder) !=
+      MCDisassembler::Success)
+    return MCDisassembler::Fail;
+  
+  MI.addOperand(MCOperand::createImm(Imm));
+  return MCDisassembler::Success;
+}
 
 enum AddrMode {
   amInvalid = 0,
@@ -117,9 +135,7 @@ enum AddrMode {
   amConstant
 };
 
-static AddrMode DecodeSrcAddrMode(unsigned Insn) {
-  unsigned Rs = fieldFromInstruction(Insn, 8, 4);
-  unsigned As = fieldFromInstruction(Insn, 4, 2);
+static AddrMode DecodeSrcAddrMode(unsigned Rs, unsigned As) {
   switch (Rs) {
   case 0:
     if (As == 1) return amSymbolic;
@@ -144,6 +160,18 @@ static AddrMode DecodeSrcAddrMode(unsigned Insn) {
   default:
     llvm_unreachable("As out of range");
   }
+}
+
+static AddrMode DecodeSrcAddrModeI(unsigned Insn) {
+  unsigned Rs = fieldFromInstruction(Insn, 8, 4);
+  unsigned As = fieldFromInstruction(Insn, 4, 2);
+  return DecodeSrcAddrMode(Rs, As);
+}
+
+static AddrMode DecodeSrcAddrModeII(unsigned Insn) {
+  unsigned Rs = fieldFromInstruction(Insn, 0, 4);
+  unsigned As = fieldFromInstruction(Insn, 4, 2);
+  return DecodeSrcAddrMode(Rs, As);
 }
 
 static AddrMode DecodeDstAddrMode(unsigned Insn) {
@@ -189,7 +217,7 @@ DecodeStatus MSP430Disassembler::getInstructionI(MCInst &MI, uint64_t &Size,
                                                  raw_ostream &VStream,
                                                  raw_ostream &CStream) const {
   uint64_t Insn = support::endian::read16le(Bytes.data());
-  AddrMode SrcAM = DecodeSrcAddrMode(Insn);
+  AddrMode SrcAM = DecodeSrcAddrModeI(Insn);
   AddrMode DstAM = DecodeDstAddrMode(Insn);
   if (SrcAM == amInvalid || DstAM == amInvalid) {
     Size = 2; // skip one word and let disassembler to try further
@@ -235,7 +263,7 @@ DecodeStatus MSP430Disassembler::getInstructionII(MCInst &MI, uint64_t &Size,
                                                   raw_ostream &VStream,
                                                   raw_ostream &CStream) const {
   uint64_t Insn = support::endian::read16le(Bytes.data());
-  AddrMode SrcAM = DecodeSrcAddrMode(Insn);
+  AddrMode SrcAM = DecodeSrcAddrModeII(Insn);
   if (SrcAM == amInvalid) {
     Size = 2; // skip one word and let disassembler to try further
     return MCDisassembler::Fail;

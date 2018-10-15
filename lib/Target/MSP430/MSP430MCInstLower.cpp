@@ -130,12 +130,6 @@ void MSP430MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
       MCOp = MCOperand::createReg(MO.getReg());
       break;
     case MachineOperand::MO_Immediate:
-      // Use absolute addressing mode - adjust base register to SR
-      if (i > 0) {
-        MCOperand &PrevOp = OutMI.getOperand(i - 1);
-        if (PrevOp.isReg() && (PrevOp.getReg() == MSP430::NoRegister))
-          PrevOp.setReg(MSP430::SR);
-      }
       MCOp = MCOperand::createImm(MO.getImm());
       break;
     case MachineOperand::MO_MachineBasicBlock:
@@ -143,12 +137,6 @@ void MSP430MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
                          MO.getMBB()->getSymbol(), Ctx));
       break;
     case MachineOperand::MO_GlobalAddress:
-      // Use absolute addressing mode - adjust base register to SR
-      if (i > 0) {
-        MCOperand &PrevOp = OutMI.getOperand(i - 1);
-        if (PrevOp.isReg() && (PrevOp.getReg() == MSP430::NoRegister))
-          PrevOp.setReg(MSP430::SR);
-      }
       MCOp = LowerSymbolOperand(MO, GetGlobalAddressSymbol(MO));
       break;
     case MachineOperand::MO_ExternalSymbol:

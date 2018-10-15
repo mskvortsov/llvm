@@ -191,20 +191,13 @@ unsigned MSP430MCCodeEmitter::getCCValue(const MCInst &MI, unsigned Op,
   const MCOperand &MO = MI.getOperand(Op);
   assert(MO.isImm() && "Immediate operand expected");
   switch (MO.getImm()) {
-  case MSP430CC::COND_E:
-    return 1;
-  case MSP430CC::COND_NE:
-    return 0;
-  case MSP430CC::COND_HS:
-    return 3;
-  case MSP430CC::COND_LO:
-    return 2;
-  case MSP430CC::COND_GE:
-    return 5;
-  case MSP430CC::COND_L:
-    return 6;
-  case MSP430CC::COND_N:
-    return 4;
+  case MSP430CC::COND_NE: return 0;
+  case MSP430CC::COND_E:  return 1;
+  case MSP430CC::COND_LO: return 2;
+  case MSP430CC::COND_HS: return 3;
+  case MSP430CC::COND_N:  return 4;
+  case MSP430CC::COND_GE: return 5;
+  case MSP430CC::COND_L:  return 6;
   default:
     llvm_unreachable("Unknown condition code");
   }

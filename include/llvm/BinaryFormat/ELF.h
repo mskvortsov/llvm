@@ -861,6 +861,8 @@ enum : unsigned {
   SHT_MIPS_DWARF = 0x7000001e,          // DWARF debugging section.
   SHT_MIPS_ABIFLAGS = 0x7000002a,       // ABI information.
 
+  SHT_MSP430_ATTRIBUTES = 0x70000003U,
+
   SHT_HIPROC = 0x7fffffff,              // Highest processor arch-specific type.
   SHT_LOUSER = 0x80000000,              // Lowest type reserved for applications.
   SHT_HIUSER = 0xffffffff               // Highest type reserved for applications.

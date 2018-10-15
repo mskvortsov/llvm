@@ -27,6 +27,8 @@ class MCRegisterInfo;
 class MCContext;
 class MCTargetOptions;
 class MCObjectTargetWriter;
+class MCStreamer;
+class MCTargetStreamer;
 
 Target &getTheMSP430Target();
 
@@ -39,6 +41,9 @@ MCAsmBackend *createMSP430MCAsmBackend(const Target &T,
                                        const MCSubtargetInfo &STI,
                                        const MCRegisterInfo &MRI,
                                        const MCTargetOptions &Options);
+
+MCTargetStreamer *
+createMSP430ObjectTargetStreamer(MCStreamer &S, const MCSubtargetInfo &STI);
 
 std::unique_ptr<MCObjectTargetWriter>
 createMSP430ELFObjectWriter(uint8_t OSABI);

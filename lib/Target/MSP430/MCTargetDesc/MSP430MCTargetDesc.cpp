@@ -14,7 +14,6 @@
 #include "MSP430MCTargetDesc.h"
 #include "InstPrinter/MSP430InstPrinter.h"
 #include "MSP430MCAsmInfo.h"
-#include "MSP430ELFStreamer.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
@@ -55,14 +54,6 @@ static MCInstPrinter *createMSP430MCInstPrinter(const Triple &T,
                                                 const MCRegisterInfo &MRI) {
   if (SyntaxVariant == 0)
     return new MSP430InstPrinter(MAI, MII, MRI);
-  return nullptr;
-}
-
-static MCTargetStreamer *
-createMSP430ObjectTargetStreamer(MCStreamer &S, const MCSubtargetInfo &STI) {
-  const Triple &TT = STI.getTargetTriple();
-  if (TT.isOSBinFormatELF())
-    return new MSP430TargetELFStreamer(S, STI);
   return nullptr;
 }
 

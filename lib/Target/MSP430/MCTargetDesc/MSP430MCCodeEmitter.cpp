@@ -139,7 +139,7 @@ unsigned MSP430MCCodeEmitter::getMemOpValue(const MCInst &MI, unsigned Op,
     FixupKind = MSP430::fixup_16_pcrel_byte;
     break;
   case 2:
-    FixupKind = MSP430::fixup_16;
+    FixupKind = MSP430::fixup_16_byte;
     break;
   default:
     FixupKind = MSP430::fixup_16_byte;

@@ -30,11 +30,6 @@ typedef MCDisassembler::DecodeStatus DecodeStatus;
 
 namespace {
 class MSP430Disassembler : public MCDisassembler {
-
-public:
-  MSP430Disassembler(const MCSubtargetInfo &STI, MCContext &Ctx)
-      : MCDisassembler(STI, Ctx) {}
-
   DecodeStatus getInstructionI(MCInst &MI, uint64_t &Size,
                                ArrayRef<uint8_t> Bytes, uint64_t Address,
                                raw_ostream &VStream,
@@ -49,6 +44,10 @@ public:
                                 ArrayRef<uint8_t> Bytes, uint64_t Address,
                                 raw_ostream &VStream,
                                 raw_ostream &CStream) const;
+
+public:
+  MSP430Disassembler(const MCSubtargetInfo &STI, MCContext &Ctx)
+      : MCDisassembler(STI, Ctx) {}
 
   DecodeStatus getInstruction(MCInst &MI, uint64_t &Size,
                               ArrayRef<uint8_t> Bytes, uint64_t Address,
@@ -274,6 +273,7 @@ DecodeStatus MSP430Disassembler::getInstructionI(MCInst &MI, uint64_t &Size,
     return Result;
   }
 
+  Size = 2;
   return DecodeStatus::Fail;
 }
 
@@ -310,6 +310,7 @@ DecodeStatus MSP430Disassembler::getInstructionII(MCInst &MI, uint64_t &Size,
     return Result;
   }
 
+  Size = 2;
   return DecodeStatus::Fail;
 }
 
@@ -322,7 +323,7 @@ static MSP430CC::CondCodes getCondCode(unsigned Cond) {
   case 4: return MSP430CC::COND_N;
   case 5: return MSP430CC::COND_GE;
   case 6: return MSP430CC::COND_L;
-  case 7: return MSP430CC::COND_INVALID;
+  case 7: return MSP430CC::COND_NONE;
   default:
     llvm_unreachable("Cond out of range");
   }

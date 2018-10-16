@@ -34,7 +34,6 @@ namespace llvm {
 
 /// Parses MSP430 assembly from a stream.
 class MSP430AsmParser : public MCTargetAsmParser {
-private:
   const MCSubtargetInfo &STI;
   MCAsmParser &Parser;
   const MCRegisterInfo *MRI;
@@ -57,10 +56,12 @@ private:
   bool parseJccInstruction(ParseInstructionInfo &Info, StringRef Name,
                            SMLoc NameLoc, OperandVector &Operands);
 
-private:
   bool ParseOperand(OperandVector &Operands);
 
   bool ParseLiteralValues(unsigned Size, SMLoc L);
+
+  MCAsmParser &getParser() const { return Parser; }
+  MCAsmLexer &getLexer() const { return Parser.getLexer(); }
 
   /// @name Auto-generated Matcher Functions
   /// {
@@ -79,14 +80,10 @@ public:
 
     setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
   }
-
-  MCAsmParser &getParser() const { return Parser; }
-  MCAsmLexer &getLexer() const { return Parser.getLexer(); }
 };
 
 /// A parsed MSP430 assembly operand.
 class MSP430Operand : public MCParsedAsmOperand {
-private:
   typedef MCParsedAsmOperand Base;
 
   enum KindTy {
@@ -98,7 +95,6 @@ private:
     k_PostIndReg
   } Kind;
 
-public:
   struct Memory {
     unsigned Reg;
     const MCExpr *Offset;
@@ -122,7 +118,6 @@ public:
   MSP430Operand(unsigned Reg, MCExpr const *Expr, SMLoc const &S, SMLoc const &E)
       : Base(), Kind(k_Mem), Mem({Reg, Expr}), Start(S), End(E) {}
 
-public:
   void addRegOperands(MCInst &Inst, unsigned N) const {
     assert((Kind == k_Reg || Kind == k_IndReg || Kind == k_PostIndReg) &&
         "Unexpected operand kind");
@@ -185,6 +180,11 @@ public:
   unsigned getReg() const {
     assert(Kind == k_Reg && "Invalid access!");
     return Reg;
+  }
+
+  void setReg(unsigned RegNo) {
+    assert(Kind == k_Reg && "Invalid access!");
+    Reg = RegNo;
   }
 
   static std::unique_ptr<MSP430Operand> CreateToken(StringRef Str, SMLoc S) {
@@ -327,11 +327,11 @@ bool MSP430AsmParser::parseJccInstruction(ParseInstructionInfo &Info,
   else if (CC == "l")
     CondCode = MSP430CC::COND_L;
   else if (CC == "mp")
-    CondCode = MSP430CC::COND_INVALID;
+    CondCode = MSP430CC::COND_NONE;
   else
     return Error(NameLoc, "unknown instruction");
 
-  if (CondCode == (unsigned)MSP430CC::COND_INVALID)
+  if (CondCode == (unsigned)MSP430CC::COND_NONE)
     Operands.push_back(MSP430Operand::CreateToken("jmp", NameLoc));
   else {
     Operands.push_back(MSP430Operand::CreateToken("j", NameLoc));
@@ -385,7 +385,7 @@ bool MSP430AsmParser::ParseInstruction(ParseInstructionInfo &Info,
 
   // Parse second operand if any
   if (getLexer().is(AsmToken::Comma)) {
-    getLexer().Lex(); // eat Comma
+    getLexer().Lex(); // Eat ','
     if (ParseOperand(Operands))
       return true;
   }
@@ -430,20 +430,20 @@ bool MSP430AsmParser::ParseOperand(OperandVector &Operands) {
     case AsmToken::Minus: {
       SMLoc StartLoc = getParser().getTok().getLoc();
       const MCExpr *Val;
-      // try constexpr[(rN)]
+      // Try constexpr[(rN)]
       if (!getParser().parseExpression(Val)) {
         unsigned RegNo = MSP430::PC;
         SMLoc EndLoc = getParser().getTok().getLoc();
-        // try (rN)
+        // Try (rN)
         if (getLexer().getKind() == AsmToken::LParen) {
-          getLexer().Lex(); // eat LParen
+          getLexer().Lex(); // Eat '('
           SMLoc RegStartLoc;
           if (ParseRegister(RegNo, RegStartLoc, EndLoc))
             return true;
           if (getLexer().getKind() != AsmToken::RParen)
             return true;
           EndLoc = getParser().getTok().getEndLoc();
-          getLexer().Lex(); // eat RParen
+          getLexer().Lex(); // Eat ')'
         }
         Operands.push_back(MSP430Operand::CreateMem(RegNo, Val, StartLoc,
           EndLoc));
@@ -452,9 +452,9 @@ bool MSP430AsmParser::ParseOperand(OperandVector &Operands) {
       return true;
     }
     case AsmToken::Amp: {
-      // try &constexpr
+      // Try &constexpr
       SMLoc StartLoc = getParser().getTok().getLoc();
-      getLexer().Lex(); // eat Amp
+      getLexer().Lex(); // Eat '&'
       const MCExpr *Val;
       if (!getParser().parseExpression(Val)) {
         SMLoc EndLoc = getParser().getTok().getLoc();
@@ -465,25 +465,25 @@ bool MSP430AsmParser::ParseOperand(OperandVector &Operands) {
       return true;
     }
     case AsmToken::At: {
-      // try @rN[+]
+      // Try @rN[+]
       SMLoc StartLoc = getParser().getTok().getLoc();
-      getLexer().Lex(); // eat At
+      getLexer().Lex(); // Eat '@'
       unsigned RegNo;
       SMLoc RegStartLoc, EndLoc;
       if (ParseRegister(RegNo, RegStartLoc, EndLoc))
         return true;
       if (getLexer().getKind() == AsmToken::Plus) {
         Operands.push_back(MSP430Operand::CreatePostIndReg(RegNo, StartLoc, EndLoc));
-        getLexer().Lex(); // eat Plus
+        getLexer().Lex(); // Eat '+'
         return false;
       }
       Operands.push_back(MSP430Operand::CreateIndReg(RegNo, StartLoc, EndLoc));
       return false;
     }
     case AsmToken::Hash:
-      // try #constexpr
+      // Try #constexpr
       SMLoc StartLoc = getParser().getTok().getLoc();
-      getLexer().Lex(); // eat Hash
+      getLexer().Lex(); // Eat '#'
       const MCExpr *Val;
       if (!getParser().parseExpression(Val)) {
         SMLoc EndLoc = getParser().getTok().getLoc();
@@ -513,7 +513,7 @@ extern "C" void LLVMInitializeMSP430AsmParser() {
 #define GET_MATCHER_IMPLEMENTATION
 #include "MSP430GenAsmMatcher.inc"
 
-unsigned convertGR16ToGR8(unsigned Reg) {
+static unsigned convertGR16ToGR8(unsigned Reg) {
   switch (Reg) {
   default:
     llvm_unreachable("Unknown GR16 register");
@@ -548,7 +548,7 @@ unsigned MSP430AsmParser::validateTargetOperandClass(MCParsedAsmOperand &AsmOp,
       MSP430MCRegisterClasses[MSP430::GR16RegClassID].contains(Reg);
 
   if (isGR16 && (Kind == MCK_GR8)) {
-    Op.Reg = convertGR16ToGR8(Reg);
+    Op.setReg(convertGR16ToGR8(Reg));
     return Match_Success;
   }
 

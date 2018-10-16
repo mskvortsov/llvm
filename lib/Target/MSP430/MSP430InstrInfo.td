@@ -80,7 +80,7 @@ def memsrc : Operand<i16> {
   let PrintMethod = "printSrcMemOperand";
   let MIOperandInfo = (ops GR16, i16imm);
   let ParserMatchClass = MemAsmOperand;
-  let EncoderMethod = "getMemOperandValue";
+  let EncoderMethod = "getMemOpValue";
   let DecoderMethod = "DecodeMemOperand";
 }
 
@@ -88,7 +88,7 @@ def memdst : Operand<i16> {
   let PrintMethod = "printSrcMemOperand";
   let MIOperandInfo = (ops GR16, i16imm);
   let ParserMatchClass = MemAsmOperand;
-  let EncoderMethod = "getMemOperandValue";
+  let EncoderMethod = "getMemOpValue";
   let DecoderMethod = "DecodeMemOperand";
 }
 
@@ -119,13 +119,13 @@ def postreg : Operand<i16> {
 // Short jump targets have OtherVT type and are printed as pcrel imm values.
 def jmptarget : Operand<OtherVT> {
   let PrintMethod = "printPCRelImmOperand";
-  let EncoderMethod = "getPCRelImmValue";
+  let EncoderMethod = "getPCRelImmOpValue";
 }
 
 // Operand for printing out a condition code.
 def cc : Operand<i8> {
   let PrintMethod = "printCCOperand";
-  let EncoderMethod = "getCCValue";
+  let EncoderMethod = "getCCOpValue";
 }
 
 def CGImmAsmOperand : AsmOperandClass {
